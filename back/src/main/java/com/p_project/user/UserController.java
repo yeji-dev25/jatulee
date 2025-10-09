@@ -1,10 +1,6 @@
-package com.example.demo.controller;
+package com.p_project.user;
 
 
-import com.example.demo.dto.UserDTO;
-import com.example.demo.entity.UserEntity;
-import com.example.demo.repository.UserRepository;
-import com.example.demo.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
@@ -16,6 +12,7 @@ public class UserController {
 
     private final UserRepository repo;
     private final UserService userService;
+
 
 
     @GetMapping

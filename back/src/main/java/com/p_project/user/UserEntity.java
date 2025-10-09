@@ -1,7 +1,6 @@
-package com.example.demo.entity;
+package com.p_project.user;
 
 
-import com.example.demo.dto.UserDTO;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -15,9 +14,7 @@ import java.time.LocalDateTime;
 @Setter
 @Table(name = "`user`") // ← 중요: user는 예약어 이슈 피하려고 백틱 사용
 public class UserEntity {
-
-
-
+    
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
