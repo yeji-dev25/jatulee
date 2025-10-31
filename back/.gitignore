@@ -40,5 +40,8 @@ bin/
 !**/src/test/**/bin/
 
 # --- resources 폴더는 Git에 포함시키기 ---
-!**/src/main/resources/**
-!**/src/test/resources/**
+!src/
+!src/main/
+!src/test/
+!src/main/resources/**
+!src/test/resources/**
