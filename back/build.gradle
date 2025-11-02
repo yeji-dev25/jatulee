@@ -43,6 +43,9 @@ dependencies {
 
 	//.env 설장
 	implementation 'me.paulschwarz:spring-dotenv:4.0.0'
+
+	//email 인증
+	implementation 'org.springframework.boot:spring-boot-starter-mail'
 }
 
 tasks.named('test') {
