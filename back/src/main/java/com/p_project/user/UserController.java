@@ -1,7 +1,5 @@
 package com.p_project.user;
 
-
-
 import com.p_project.jwt.JWTUtil;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
@@ -133,6 +131,18 @@ public class UserController {
         } catch (AuthenticationException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("인증 실패");
         }
+    }
+
+    @GetMapping("/reset-password")
+    public String resetPasswordPage() {
+        return "reset-password"; // reset-password.html
+    }
+
+    @PostMapping("/reset-password")
+    @ResponseBody
+    public ResponseEntity<String> resetPassword(@RequestBody PasswordResetDTO dto) {
+        userService.resetPassword(dto);
+        return ResponseEntity.ok("비밀번호가 성공적으로 변경되었습니다.");
     }
 
 

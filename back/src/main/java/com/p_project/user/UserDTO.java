@@ -16,6 +16,8 @@ public class UserDTO {
 
     private String name;
 
+    private String pwd;
+
     /** 'M' / 'F' / 'U' 등 1글자 권장 */
     private String gender;
 
@@ -39,6 +41,7 @@ public class UserDTO {
         return UserDTO.builder()
                 .id(e.getId())
                 .name(e.getName())
+                .pwd(e.getPwd())
                 .gender(e.getGender())
                 .nickname(e.getNickname())
                 .provider(e.getProvider())

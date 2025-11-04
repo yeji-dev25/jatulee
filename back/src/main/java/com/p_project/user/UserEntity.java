@@ -22,6 +22,9 @@ public class UserEntity {
     @Column(nullable = false, length = 45)
     private String name;
 
+    @Column(nullable = false, length = 45)
+    private String pwd;
+
     @Column(nullable = false, length = 1)
     private String gender; // 'M'/'F' 등
 
@@ -52,6 +55,7 @@ public class UserEntity {
         return UserEntity.builder()
                 .id(dto.getId())
                 .name(dto.getName())
+                .pwd(dto.getPwd())
                 .gender(dto.getGender())
                 .nickname(dto.getNickname())
                 .provider(dto.getProvider())
