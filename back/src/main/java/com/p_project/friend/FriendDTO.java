@@ -13,6 +13,7 @@ public class FriendDTO {
     private Long toUserId;
     private Long fromUserId;
     private String friendNickName;
+    private String friendEmail;
 
     public FriendEntity toEntity() {
         return FriendEntity.builder()

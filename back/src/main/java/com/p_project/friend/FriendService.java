@@ -6,6 +6,7 @@ import com.p_project.user.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -36,4 +37,30 @@ public class FriendService {
                 .map(UserDTO::fromEntity)
                 .toList();
     }
+
+    public List<UserDTO> getPendingRequests(Long userId) {
+        List<UserEntity> users = friendRepository.findPendingRequestSenders(userId);
+
+        return users.stream()
+                .map(UserDTO::fromEntity)
+                .toList();
+    }
+
+    @Transactional
+    public void acceptFriend(Long fromUserId, Long toUserId) {
+        if (friendRepository.existsFriendship(fromUserId, toUserId) < 1) {
+            friendRepository.acceptFriendRequest(fromUserId, toUserId);
+        }
+    }
+
+    @Transactional
+    public void sendFriendRequest(Long fromUserId, String email) {
+        friendRepository.sendFriendRequest(fromUserId, email);
+    }
+
+    @Transactional
+    public void deleteFriendRequest(Long fromUserId, Long toUserId) {
+        friendRepository.deleteFriendRequest(fromUserId, toUserId);
+    }
+
 }

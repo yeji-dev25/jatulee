@@ -24,12 +24,11 @@ public class FriendController {
         return ResponseEntity.ok().build();
     }
 
-    @PostMapping("/acept")
-    public ResponseEntity<Void> aceptFriendRequest(@RequestBody FriendDTO friendDTO){
-        log.info("in FriendController: addFriend");
-
-        friendService.addFriend(friendDTO);
-        return ResponseEntity.ok().build();
+    @PostMapping("/accept")
+    public ResponseEntity<Integer> acceptFriend(@RequestParam Long fromUserId,
+                                               @RequestParam Long toUserId) {
+        friendService.acceptFriend(fromUserId, toUserId);
+        return ResponseEntity.ok(200);
     }
 
     @GetMapping("/list/{userId}")
@@ -40,4 +39,27 @@ public class FriendController {
         return ResponseEntity.ok(users);
     }
 
+    @GetMapping("/requests/{userId}")
+    public ResponseEntity<List<UserDTO>> getPendingRequests(@PathVariable Long userId) {
+        List<UserDTO> requests = friendService.getPendingRequests(userId);
+        return ResponseEntity.ok(requests);
+    }
+
+    @PostMapping("/request")
+    public ResponseEntity<Integer> sendFriendRequest(
+            @RequestParam Long fromUserId,
+            @RequestParam String email) {
+
+        friendService.sendFriendRequest(fromUserId, email);
+        return ResponseEntity.ok(200);
+    }
+
+    @PostMapping("/request/delete")
+    public ResponseEntity<Integer> deleteFriendRequest(
+            @RequestParam Long fromUserId,
+            @RequestParam Long toUserId) {
+
+        friendService.deleteFriendRequest(fromUserId, toUserId);
+        return ResponseEntity.ok(200);
+    }
 }
