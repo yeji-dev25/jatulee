@@ -20,7 +20,7 @@ public class FriendController {
     private final FriendService friendService;
 
     @PostMapping("/add")
-    public ResponseEntity<Void> addFriend(@RequestBody FriendDTO friendDTO){
+    public ResponseEntity<Void> addFriend(@RequestBody FriendDTO friendDTO){ // TODO: 들어오는 리퀘스트 수정 필요
         log.info("in FriendController: addFriend");
 
         friendService.addFriend(friendDTO);
@@ -66,7 +66,7 @@ public class FriendController {
         return ResponseEntity.ok(200);
     }
 
-    @GetMapping("/calendar/friend")
+    @GetMapping("/calendar")
     public ResponseEntity<CalendarDTO> getFriendCalendarSummary(
             @RequestParam Long userId,
             @RequestParam Long friendId,

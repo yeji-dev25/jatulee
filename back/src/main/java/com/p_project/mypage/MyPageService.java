@@ -14,7 +14,7 @@ import org.springframework.web.multipart.MultipartFile;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class MypageService {
+public class MyPageService {
 
     private final ProfileService profileService;
     private final UserRepository userRepository;

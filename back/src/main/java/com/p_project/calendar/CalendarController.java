@@ -19,7 +19,7 @@ public class CalendarController {
 
     private final CalendarService calendarService;
 
-    @GetMapping("/calendar")
+    @GetMapping("/get")
     public ResponseEntity<CalendarDTO> getCalendarSummary(@RequestParam Long userId,
                                                           @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
         CalendarDTO calendarDTO = calendarService.getCalendarSummary(userId, date);

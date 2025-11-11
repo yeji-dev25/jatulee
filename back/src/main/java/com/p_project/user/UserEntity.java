@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "`user`") // user 예약어 회피
+@Table(name = "users")
 public class UserEntity {
 
     @Id

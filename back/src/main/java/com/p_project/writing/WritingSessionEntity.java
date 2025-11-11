@@ -24,6 +24,7 @@ public class WritingSessionEntity {
     @Column(nullable = false)
     private Type type;
 
+    @Enumerated(EnumType.STRING)
     @Column(length = 45, nullable = false)
     private WritingStatus status;
 

@@ -15,7 +15,7 @@ import org.springframework.web.multipart.MultipartFile;
 @RequestMapping("/api/myapge")
 public class MyPageController {
 
-    private final MypageService mypageService;
+    private final MyPageService mypageService;
 
     @PostMapping(path = "/profile", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ProfileDTO> updateProfile(

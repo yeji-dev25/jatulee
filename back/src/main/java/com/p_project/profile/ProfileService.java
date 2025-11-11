@@ -20,7 +20,7 @@ public class ProfileService {
     private final ProfileRepository profileRepository;
 
     // 실제 파일이 저장될 로컬 경로 (서버 환경에 맞게 조정) TODO: 서버 배포시 경로 수정
-    private static final String UPLOAD_DIR = "C:/Users/CHOYEJI/Project/P-Project/Back/res/img/";
+    private static final String UPLOAD_DIR = "C:/Users/CHOYEJI/Project/P-Project/back/res/img/";
     // 접근 가능한 기본 URL (개발 중엔 localhost, 배포 시엔 도메인) TODO: 배포시 서버 수정
     private static final String BASE_URL = "http://localhost:8080/img/";
 

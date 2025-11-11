@@ -14,9 +14,9 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -161,11 +161,17 @@ public class UserService {
         userRepository.save(userEntity);
     }
 
-    public String findNickNameByUserId(Long userId){
+    public Map<String, String> findNameAndNickNameByUserId(Long userId){
 
         return userRepository.findById(userId)
-                .map(UserEntity::getNickname)
-                .orElse("Unknown");
+                .map(user -> Map.of(
+                        "name", user.getName(),
+                        "nickName", user.getNickname()
+                ))
+                .orElse(Map.of(
+                        "name", "Unknown",
+                        "nickName", "Unknown"
+                ));
     }
 
     public Optional<UserEntity> findByNickname(String nickName){
