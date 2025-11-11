@@ -26,6 +26,7 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
             throws IOException, ServletException {
 
         CustomOAuth2User customUserDetails = (CustomOAuth2User) authentication.getPrincipal();
+        String email = customUserDetails.getEmail();
         String username = customUserDetails.getUsername();
         String role = authentication.getAuthorities().iterator().next().getAuthority();
 

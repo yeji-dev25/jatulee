@@ -9,38 +9,48 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
+@Component
+@RequiredArgsConstructor
+@Slf4j
 public class JWTFilter extends OncePerRequestFilter {
 
     private final JWTUtil jwtUtil;
-
-    public JWTFilter(JWTUtil jwtUtil) {
-        this.jwtUtil = jwtUtil;
-    }
-    
-    
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
                                     FilterChain filterChain)
             throws ServletException, IOException {
+        log.info(">>> [JWTFilter] 요청 경로: {}", request.getRequestURI());
+        log.info("🔍 JWTFilter 실행됨");
+        log.info("Header Authorization = {}", request.getHeader("Authorization"));
 
+        String accessToken = null;
 
-        // Access Token 꺼내기
-        String accessToken = getCookieValue(request, "Authorization");
+        // 1. 헤더에서 Access Token 추출
+        String headerAuth = request.getHeader("Authorization");
+        if (headerAuth != null && headerAuth.startsWith("Bearer ")) {
+            accessToken = headerAuth.substring(7);
+        }
+
+        // 2. 헤더에 없으면 쿠키에서 추출 (쿠키 이름: accessToken)
+        if (accessToken == null || accessToken.isBlank()) {
+            accessToken = getCookieValue(request, "accessToken");
+        }
+
         if (accessToken == null || accessToken.isBlank()) {
             filterChain.doFilter(request, response);
             return;
-        }
-        if (accessToken.startsWith("Bearer ")) {
-            accessToken = accessToken.substring(7);
         }
 
         try {
@@ -57,11 +67,10 @@ public class JWTFilter extends OncePerRequestFilter {
         } catch (ExpiredJwtException ex) {
             handleExpiredAccessToken(request, response, filterChain);
         } catch (JwtException | IllegalArgumentException ex) {
+            log.error("JWT 처리 중 오류 발생: {}", ex.getMessage());
             writeUnauthorizedJson(response, "TOKEN_INVALID", "Invalid JWT");
         }
     }
-
-    // ===========================================================제발 좀 되라
 
     private void handleExpiredAccessToken(HttpServletRequest request,
                                           HttpServletResponse response,
@@ -82,14 +91,14 @@ public class JWTFilter extends OncePerRequestFilter {
             }
 
             // Refresh Token 유효 → Access Token 재발급
-            String username = jwtUtil.getUsername(refreshToken);
+            String email = jwtUtil.getEmail(refreshToken);
             String role = jwtUtil.getRole(refreshToken);
 
-            // 새 Access Token 생성 (예: 1시간)
-            String newAccessToken = jwtUtil.createJwt(username, role, 1000L * 60 * 60);
+            // 새 Access Token 생성
+            String newAccessToken = jwtUtil.createToken(email, role);
 
-            // Bearer 없이 순수 토큰만 쿠키에 저장 -> 쿠키에 저장할때 띄어쓰기있으면 http에러나기 때문
-            Cookie newAccessCookie = new Cookie("Authorization", newAccessToken);
+            // 새 Access Token 쿠키 저장 (쿠키 이름: accessToken)
+            Cookie newAccessCookie = new Cookie("accessToken", newAccessToken);
             newAccessCookie.setHttpOnly(true);
             newAccessCookie.setPath("/");
             newAccessCookie.setMaxAge(60 * 60); // 1시간
@@ -101,20 +110,26 @@ public class JWTFilter extends OncePerRequestFilter {
 
 
         } catch (JwtException e) {
+            log.error("Refresh JWT 처리 중 오류 발생: {}", e.getMessage());
             clearAuthCookies(response);
             writeUnauthorizedJson(response, "REFRESH_INVALID", "Invalid refresh token");
         }
     }
 
     private void setAuthentication(String token) {
-        String username = jwtUtil.getUsername(token);
+        String email = jwtUtil.getEmail(token);
         String role = jwtUtil.getRole(token);
 
         UserDTO userDTO = new UserDTO();
-        userDTO.setNickname(username);
+
+        // 🌟 CRITICAL FIX: 이메일을 UserDTO의 email 필드에 저장
+        userDTO.setEmail(email);
+        // 기존 코드에 따라 닉네임에도 이메일을 설정 (필요에 따라 수정 가능)
+        userDTO.setNickname(email);
         userDTO.setRole(role);
 
         CustomOAuth2User customUser = new CustomOAuth2User(userDTO);
+
         Authentication authToken = new UsernamePasswordAuthenticationToken(
                 customUser, null, customUser.getAuthorities());
 
@@ -141,7 +156,8 @@ public class JWTFilter extends OncePerRequestFilter {
 
     // 토큰 만료 시 쿠키 삭제
     private void clearAuthCookies(HttpServletResponse response) {
-        Cookie accessCookie = new Cookie("Authorization", null);
+        // 💡 FIX: Access Token 쿠키 이름 'accessToken'으로 통일
+        Cookie accessCookie = new Cookie("accessToken", null);
         accessCookie.setMaxAge(0);
         accessCookie.setPath("/");
         response.addCookie(accessCookie);

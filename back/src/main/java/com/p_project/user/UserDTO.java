@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 @ToString
 public class UserDTO {
 
-    private Integer id;
+    private Long id;
 
     private String name;
 

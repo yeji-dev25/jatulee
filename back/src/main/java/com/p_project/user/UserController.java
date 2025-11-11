@@ -45,10 +45,10 @@ public class UserController {
 
     //일반회원 로그인
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestParam String username,
+    public ResponseEntity<?> login(@RequestParam String email,
                                    @RequestParam String password,
                                    HttpServletResponse response) {
-        return userService.login(username, password, response);
+        return userService.login(email, password, response);
     }
 
 

@@ -1,7 +1,6 @@
 package com.p_project.config;
 
 import com.p_project.jwt.JWTFilter;
-import com.p_project.jwt.JWTUtil;
 import com.p_project.oauth2.CustomSuccessHandler;
 import com.p_project.sociaLogin.CustomOAuth2UserService;
 import lombok.RequiredArgsConstructor;
@@ -16,6 +15,11 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
@@ -24,21 +28,24 @@ public class SecurityConfig {
 
     private final CustomOAuth2UserService customOAuth2UserService;
     private final CustomSuccessHandler customSuccessHandler;
-    private final JWTUtil jwtUtil;
+    private final JWTFilter jwtFilter;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
         // CSRF 비활성화
-        http.csrf(csrf -> csrf.disable());
+        http.csrf(csrf -> csrf.disable())
+        .cors(cors -> cors.configurationSource(corsConfigurationSource()));
 
-        // 기본 로그인(formLogin) 활성화
-        http.formLogin(form -> form
+        // 기본 로그인(formLogin) 활성화 -> jwt 기반 프로젝트는 formLogin 방식 절대 사용 안함
+        /*http.formLogin(form -> form
                 .loginPage("/api/users/login")               // 커스텀 로그인 페이지 URL (없으면 스프링 기본 로그인폼)
                 .loginProcessingUrl("/loginProc")  // 로그인 요청 처리 URL
                 .defaultSuccessUrl("/", true)      // 로그인 성공 시 이동할 페이지
                 .permitAll()
-        );
+        );*/
+
+        http.formLogin(form -> form.disable());
 
         // Basic 인증 비활성화 (JWT와 form만 사용)
         http.httpBasic(basic -> basic.disable());
@@ -48,14 +55,21 @@ public class SecurityConfig {
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
         );
 
-        // JWT 필터 추가
-        http.addFilterBefore(new JWTFilter(jwtUtil), UsernamePasswordAuthenticationFilter.class);
 
         // 접근 권한 설정
         http.authorizeHttpRequests(auth -> auth
-                //.requestMatchers("/", "/login", "/loginProc", "/oauth2/**", "/css/**", "/js/**").permitAll()
-                .anyRequest().permitAll()
+                .requestMatchers(
+                        "/swagger-ui/**",
+                        "/swagger-resources/**",
+                        "/swagger-resources",
+                        "/v3/api-docs/**",
+                        "/webjars/**",
+                        "/api/users/login"
+                ).permitAll()
+                .anyRequest().authenticated()
         );
+        // JWT 필터 추가
+        http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
         // OAuth2 소셜 로그인 설정
         http.oauth2Login(oauth2 -> oauth2
@@ -81,6 +95,21 @@ public class SecurityConfig {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+
+        configuration.setAllowedOrigins(List.of("http://localhost:8080")); // Swagger UI origin 허용
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(List.of("*"));
+        configuration.setAllowCredentials(true);
+        configuration.setExposedHeaders(List.of("Authorization"));
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
     }
 
 }

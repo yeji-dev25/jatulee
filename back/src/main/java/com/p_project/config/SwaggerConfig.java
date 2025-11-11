@@ -1,28 +1,31 @@
 package com.p_project.config;
 
-import io.swagger.v3.oas.annotations.OpenAPIDefinition;
-import io.swagger.v3.oas.annotations.info.Info;
-import org.springdoc.core.models.GroupedOpenApi;
+import io.swagger.v3.oas.annotations.enums.SecuritySchemeType;
+import io.swagger.v3.oas.annotations.security.SecurityScheme;
+import io.swagger.v3.oas.models.Components;
+import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.info.Info;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-@OpenAPIDefinition(
-        info = @Info(title = "P-Project API 명세서",
-        description = "API 서버",
-        version = "vl")
-)
-
 @Configuration
+@SecurityScheme(
+        name = "Bearer Authentication",
+        type = SecuritySchemeType.HTTP,
+        scheme = "bearer",
+        bearerFormat = "JWT"
+)
 public class SwaggerConfig {
 
     @Bean
-    public GroupedOpenApi chatOpenApi(){
-        String[] paths = {"/**"};
-
-        return GroupedOpenApi.builder()
-                .group("코드 기록사의 Swagger-vi")
-                .pathsToMatch(paths)
-                .build();
-
+    public OpenAPI openAPI() {
+        return new OpenAPI()
+                .addSecurityItem(new io.swagger.v3.oas.models.security.SecurityRequirement()
+                        .addList("Bearer Authentication"))
+                .components(new Components())
+                .info(new Info()
+                        .title("My Project API")
+                        .description("API documentation with JWT Auth")
+                        .version("1.0.0"));
     }
 }
