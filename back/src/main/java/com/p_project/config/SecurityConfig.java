@@ -65,7 +65,8 @@ public class SecurityConfig {
                         "/v3/api-docs/**",
                         "/webjars/**",
                         "/api/users/login",
-                        "/oauth2/authorization/**"
+                        "/oauth2/authorization/**",
+                        "/login/oauth2/**"
                 ).permitAll()
                 .anyRequest().authenticated()
         );
@@ -78,6 +79,7 @@ public class SecurityConfig {
                 .userInfoEndpoint(user -> user.userService(customOAuth2UserService))
                 .successHandler(customSuccessHandler)
         );
+
 
         // 로그아웃 활성화 (선택)
         http.logout(logout -> logout
