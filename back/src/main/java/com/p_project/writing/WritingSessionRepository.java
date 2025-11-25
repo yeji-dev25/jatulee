@@ -16,9 +16,11 @@ public interface WritingSessionRepository extends JpaRepository<WritingSessionEn
             "ORDER BY w.createdAt DESC")
     List<WritingSessionEntity> findRecentWritingSessions(Long userId, Pageable pageable);
 
+
     @Query("SELECT COUNT(ws) FROM WritingSessionEntity ws " +
             "WHERE ws.emotion = :emotion " +
             "AND DATE(ws.createdAt) = :date")
     int countByEmotionAndCreatedAt(@Param("emotion") String emotion,
                                    @Param("date") LocalDate date);
+
 }
