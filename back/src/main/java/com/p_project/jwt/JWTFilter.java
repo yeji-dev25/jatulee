@@ -2,6 +2,8 @@ package com.p_project.jwt;
 
 import com.p_project.oauth2.CustomOAuth2User;
 import com.p_project.user.UserDTO;
+import com.p_project.user.UserEntity;
+import com.p_project.user.UserRepository;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
@@ -25,6 +27,7 @@ import java.io.IOException;
 public class JWTFilter extends OncePerRequestFilter {
 
     private final JWTUtil jwtUtil;
+    private final UserRepository userRepository;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -82,6 +85,9 @@ public class JWTFilter extends OncePerRequestFilter {
                 return;
             }
 
+            // userId 뽑기
+            Long userId = jwtUtil.getUserId(accessToken);
+            log.info("userId = {}", userId);
             // 유효한 Access Token → SecurityContext 설정
             setAuthentication(accessToken);
             filterChain.doFilter(request, response);
@@ -115,9 +121,11 @@ public class JWTFilter extends OncePerRequestFilter {
             // Refresh Token 유효 → Access Token 재발급
             String email = jwtUtil.getEmail(refreshToken);
             String role = jwtUtil.getRole(refreshToken);
+            UserEntity user = userRepository.findByEmail(email)
+                    .orElseThrow(() -> new RuntimeException("유저 없음"));
 
             // 새 Access Token 생성
-            String newAccessToken = jwtUtil.createToken(email, role);
+            String newAccessToken = jwtUtil.createToken(user.getId(), email, role);
 
             // 새 Access Token 쿠키 저장 (쿠키 이름: accessToken)
             Cookie newAccessCookie = new Cookie("accessToken", newAccessToken);
@@ -139,6 +147,7 @@ public class JWTFilter extends OncePerRequestFilter {
     }
 
     private void setAuthentication(String token) {
+        Long userId = jwtUtil.getUserId(token);
         String email = jwtUtil.getEmail(token);
         String role = jwtUtil.getRole(token);
 
@@ -146,6 +155,7 @@ public class JWTFilter extends OncePerRequestFilter {
 
         // 🌟 CRITICAL FIX: 이메일을 UserDTO의 email 필드에 저장
         userDTO.setEmail(email);
+        userDTO.setId(userId);
         // 기존 코드에 따라 닉네임에도 이메일을 설정 (필요에 따라 수정 가능)
         userDTO.setNickname(email);
         userDTO.setRole(role);

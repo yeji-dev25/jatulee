@@ -103,9 +103,10 @@ public class UserService {
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(email, password)
             );
+            Optional<UserEntity> user = userRepository.findByEmail(email);
             String role = authentication.getAuthorities().iterator().next().getAuthority();
-            String accessToken = jwtUtil.createJwt(email, role, 1000L * 60 * 60); // 1시간
-            String refreshToken = jwtUtil.createJwt(email, role, 1000L * 60 * 60 * 24 * 14); // 14일
+            String accessToken = jwtUtil.createJwt(user.get().getId(), email, role, 1000L * 60 * 60); // 1시간
+            String refreshToken = jwtUtil.createJwt(user.get().getId(), email, role, 1000L * 60 * 60 * 24 * 14); // 14일
 
             Cookie accessCookie = new Cookie("accessToken", accessToken);
             accessCookie.setHttpOnly(true);
@@ -176,6 +177,30 @@ public class UserService {
     public Optional<UserEntity> findByNickname(String nickName){
 
         return userRepository.findByNickname(nickName);
+    }
+
+    public boolean exitsEmail(String email) {
+
+        boolean result = false;
+        if (userRepository.findByEmail(email).isPresent()) {
+            result = true;
+        }
+        return result;
+    }
+
+    public boolean exitsNickName(String nickName) {
+
+        boolean result = false;
+        if (userRepository.findByNickname(nickName).isPresent()) {
+            result = true;
+        }
+        return result;
+    }
+
+    public Long findUserIdByEmail (String email) {
+
+            Optional<UserEntity> userEntity  = userRepository.findByEmail(email);
+        return userEntity.get().getId();
     }
 
 }

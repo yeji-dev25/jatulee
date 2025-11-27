@@ -46,8 +46,8 @@ public class WritingSessionEntity {
     @Column(name = "recommend_genre",length = 45)
     private String recommendGenre;
 
-    @Column(nullable = false)
-    private int extraQuestions = 0;   // 추가 질문 개수
+    @Column(name = "extra_questions")
+    private Integer extraQuestions = 0;   // 추가 질문 개수
 
     @Column(name = "created_at",
             columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
