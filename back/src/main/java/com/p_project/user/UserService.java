@@ -210,4 +210,9 @@ public class UserService {
         return userEntity.get().getId();
     }
 
+    public Optional<UserEntity> findById(Long userId){
+
+        return userRepository.findById(userId);
+    }
+
 }
