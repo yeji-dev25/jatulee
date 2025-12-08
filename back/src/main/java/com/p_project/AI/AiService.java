@@ -1,66 +1,75 @@
 package com.p_project.AI;
 
 import com.p_project.message.MessagesEntity;
-import com.p_project.writing.WritingSessionEntity;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
-@Slf4j
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class AiService {
 
-    public String generateFirstQuestion(WritingSessionEntity.Type type) {
+    private final RestTemplate restTemplate;
 
-        if (type == WritingSessionEntity.Type.diary) {
-            return "오늘 하루 중 가장 기억에 남는 순간은 무엇이었나요?";
-        } else {
-            return "최근 읽은 책은 무엇이며, 선택한 이유는 무엇인가요?";
-        }
+    // 내부 FastAPI 서버 포트 (다른 팀이 안 쓰는 포트로 사용)
+    private final String AI_SERVER_URL = "http://127.0.0.1:60099";
 
-        // 실제 구현 시 → 프롬프트 넣고 OpenAI API 호출
+    // -----------------------------
+    // 첫 질문
+    // -----------------------------
+    public String getFirstQuestion(String mode) {
+
+        String url = AI_SERVER_URL + "/api/ai/start?mode=" + mode;
+
+        Map res = restTemplate.getForObject(url, Map.class);
+
+        return (String) res.get("question");
     }
 
-    public AiResponseDTO generateNextQuestion(List<MessagesEntity> messages) {
 
-        // TODO: 실제 AI API 연동 부분
+    // -----------------------------
+    // 다음 질문 생성
+    // -----------------------------
+    public AiResponseDTO generateNextQuestion(String mode, List<MessagesEntity> messages) {
 
-        // 임시 Mock 로직
+        NextQuestionRequest req = NextQuestionRequest.from(mode, messages);
+
+        NextQuestionResponse res = restTemplate.postForObject(
+                AI_SERVER_URL + "/api/ai/next-question",
+                req,
+                NextQuestionResponse.class
+        );
+
         return AiResponseDTO.builder()
-                .nextQuestion("그 일은 당신에게 어떤 감정을 느끼게 했나요?")
-                .emotion("neutral")
+                .nextQuestion(res.getNextQuestion())
+                .emotion(res.getEmotion())
                 .build();
     }
 
-    public AiFinalizeResponseDTO generateFinalText(List<MessagesEntity> messages) {
 
-        // TODO: 실제 OpenAI API 호출 구현
+    // -----------------------------
+    // 최종 글 생성
+    // -----------------------------
+    public AiFinalizeResponseDTO generateFinalText(String mode, List<MessagesEntity> messages) {
+
+        FinalizeRequest req = FinalizeRequest.from(mode, messages);
+
+        FinalizeResponse res = restTemplate.postForObject(
+                AI_SERVER_URL + "/api/ai/finalize",
+                req,
+                FinalizeResponse.class
+        );
 
         return AiFinalizeResponseDTO.builder()
-                .content("당신의 하루는 ... (AI가 정리한 완성글)")
-                .emotion("행복")
-                .recommendTitle("Happy - Pharrell Williams")
-                .recommendGenre("Pop")
+                .content(res.getFinalText())
+                .emotion(res.getDominantEmotion())
+                .recommendTitle(res.getMusic().get("recommendation"))
+                .recommendGenre("Etc")
                 .build();
     }
-
-    public AiAdditionalQuestionsDTO generateAdditionalQuestions(List<MessagesEntity> messages, int n) {
-
-        // TODO: 실제 AI API 연동
-
-        // 임시 Mock
-        List<String> list = new ArrayList<>();
-        for (int i = 1; i <= n; i++) {
-            list.add("추가 질문 " + i + "을 생성했습니다. 더 자세히 이야기해 줄 수 있나요?");
-        }
-
-        return AiAdditionalQuestionsDTO.builder()
-                .questions(list)
-                .build();
-    }
-
 }

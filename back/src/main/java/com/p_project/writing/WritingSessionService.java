@@ -9,57 +9,29 @@ import com.p_project.message.feedback.FeedbackRequestDTO;
 import com.p_project.message.feedback.FeedbackResponDTO;
 import com.p_project.message.finalize.FinalizeRequestDTO;
 import com.p_project.message.finalize.FinalizeResponseDTO;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
-@Slf4j
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class WritingSessionService {
 
     private final WritingSessionRepository writingSessionRepository;
     private final MessageRepository messageRepository;
-    private final AiService aiService; // AI 호출 담당 서비스
+    private final AiService aiService;
 
-    public List<WritingSessionDTO> getRecentWritingSessions(Long userId) {
-        Pageable limitFive = PageRequest.of(0, 5);
-        return writingSessionRepository.findRecentWritingSessions(userId, limitFive)
-                .stream()
-                .map(w -> new WritingSessionDTO(
-                        w.getUserId(),
-                        w.getTitle(),
-                        w.getType().name(),
-                        w.getGenre(),
-                        w.getEmotion(),
-                        w.getContent(),
-                        w.getCreatedAt()
-                ))
-                .collect(Collectors.toList());
-    }
+    private final int INITIAL_QUESTIONS = 5;
 
-
-    @Transactional
-    public WritingSessionEntity complete(Long id) {
-        WritingSessionEntity entity = writingSessionRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND, // 404 상태 코드
-                        "Writing not found with id: " + id));
-
-        entity.setStatus(WritingSessionEntity.WritingStatus.COMPLETE);
-        return writingSessionRepository.save(entity);
-    }
+    // ---------------------------------------
+    // 1) 글쓰기 시작
+    // ---------------------------------------
     public StartResponseDTO startWriting(StartRequestDTO request) {
 
-        // 1) Session 생성
+        // DB에 세션 생성
         WritingSessionEntity session = WritingSessionEntity.builder()
                 .userId(request.getUserId())
                 .type(request.getType())
@@ -68,31 +40,34 @@ public class WritingSessionService {
 
         writingSessionRepository.save(session);
 
-        // 2) AI에게 첫 질문 요청
-        String firstQuestion = aiService.generateFirstQuestion(request.getType());
+        // AI → 첫 질문 요청 (messages 없음)
+        String mode = session.getType().name();
+        AiResponseDTO first = aiService.generateNextQuestion(mode, List.of());
 
-        // 3) 메시지 저장 (role=AI)
-        MessagesEntity aiMessage = MessagesEntity.builder()
-                .sessionId(session.getId())
-                .role(MessagesEntity.MessageRole.AI)
-                .content(firstQuestion)
-                .build();
+        // AI 질문 DB 저장
+        messageRepository.save(
+                MessagesEntity.builder()
+                        .sessionId(session.getId())
+                        .role(MessagesEntity.MessageRole.AI)
+                        .content(first.getNextQuestion())
+                        .build()
+        );
 
-        messageRepository.save(aiMessage);
-
-        // 4) 프론트에 전달
         return StartResponseDTO.builder()
                 .sessionId(session.getId())
-                .question(firstQuestion)
+                .question(first.getNextQuestion())
                 .build();
     }
 
+    // ---------------------------------------
+    // 2) 답변 처리 + 다음 질문 생성
+    // ---------------------------------------
     public AnswerResponseDTO submitAnswer(AnswerRequestDTO request) {
 
         WritingSessionEntity session = writingSessionRepository.findById(request.getSessionId())
                 .orElseThrow(() -> new RuntimeException("Session not found"));
 
-        // 1) 사용자 답변 저장
+        // 사용자 답변 저장
         messageRepository.save(
                 MessagesEntity.builder()
                         .sessionId(request.getSessionId())
@@ -101,64 +76,67 @@ public class WritingSessionService {
                         .build()
         );
 
-        // 2) 현재 AI 메시지 개수 = 현재 질문 번호
-        int currentIndex = messageRepository.countBySessionIdAndRole(
-                request.getSessionId(), MessagesEntity.MessageRole.AI
-        );
+        // 모든 메시지 로드
+        List<MessagesEntity> history =
+                messageRepository.findBySessionIdOrderByCreatedAtAsc(request.getSessionId());
 
-        // 3) totalQuestions 계산
-        int totalQuestions = 5;
-        if(session.getExtraQuestions() != null) {
-            totalQuestions = totalQuestions + session.getExtraQuestions();
-        }
-        // 4) 마지막 질문이면 finalize 단계로 안내
-        if (currentIndex >= totalQuestions) {
+        // 현재 질문 개수 = AI 메시지 개수
+        int aiCount = (int) history.stream()
+                .filter(m -> m.getRole() == MessagesEntity.MessageRole.AI)
+                .count();
+
+        int totalQuestions = INITIAL_QUESTIONS + session.getExtraQuestions();
+
+        // 마지막 질문이면 finalize 안내
+        if (aiCount >= totalQuestions) {
             return AnswerResponseDTO.builder()
                     .nextQuestion(null)
                     .finalize(true)
-                    .currentIndex(currentIndex)
+                    .currentIndex(aiCount)
                     .totalQuestions(totalQuestions)
                     .build();
         }
 
-        // 5) 다음 질문 1개 생성 (핵심)
-        List<MessagesEntity> allMessages =
-                messageRepository.findBySessionIdOrderByCreatedAtAsc(request.getSessionId());
+        // 다음 질문 생성
+        AiResponseDTO ai = aiService.generateNextQuestion(
+                session.getType().name(),
+                history
+        );
 
-        AiResponseDTO ai = aiService.generateNextQuestion(allMessages);
-
-        // 6) AI 질문 저장
+        // AI 질문 저장
         messageRepository.save(
                 MessagesEntity.builder()
-                        .sessionId(request.getSessionId())
+                        .sessionId(session.getId())
                         .role(MessagesEntity.MessageRole.AI)
                         .content(ai.getNextQuestion())
                         .build()
         );
 
-        // 7) 응답
         return AnswerResponseDTO.builder()
                 .nextQuestion(ai.getNextQuestion())
                 .emotion(ai.getEmotion())
                 .finalize(false)
-                .currentIndex(currentIndex + 1)
+                .currentIndex(aiCount + 1)
                 .totalQuestions(totalQuestions)
                 .build();
     }
 
+    // ---------------------------------------
+    // 3) 완성 처리 (finalize)
+    // ---------------------------------------
     public FinalizeResponseDTO finalizeWriting(FinalizeRequestDTO request) {
 
-        // 1) 세션 조회
         WritingSessionEntity session = writingSessionRepository.findById(request.getSessionId())
                 .orElseThrow(() -> new RuntimeException("Session not found"));
 
-        // 2) 메시지 전부 불러오기
-        List<MessagesEntity> messages = messageRepository.findBySessionIdOrderByCreatedAtAsc(request.getSessionId());
+        // 모든 메시지 로드
+        List<MessagesEntity> history =
+                messageRepository.findBySessionIdOrderByCreatedAtAsc(request.getSessionId());
 
-        // 3) AI에게 최종 글 생성 요청
-        AiFinalizeResponseDTO aiResult = aiService.generateFinalText(messages);
+        AiFinalizeResponseDTO aiResult =
+                aiService.generateFinalText(session.getType().name(), history);
 
-        // 4) writing_session에 저장
+        // DB 저장
         session.setContent(aiResult.getContent());
         session.setEmotion(aiResult.getEmotion());
         session.setRecommendTitle(aiResult.getRecommendTitle());
@@ -167,25 +145,18 @@ public class WritingSessionService {
 
         writingSessionRepository.save(session);
 
-        // 5) 같은 감정 count 조회
-        int emotionCount = writingSessionRepository.countByEmotionAndCreatedAt(
-                aiResult.getEmotion(),
-                session.getCreatedAt().toLocalDate()
-        );
-
-        // 6) 프론트에 결과 반환
         return FinalizeResponseDTO.builder()
                 .sessionId(session.getId())
-                .title(session.getTitle())
                 .content(aiResult.getContent())
                 .emotion(aiResult.getEmotion())
-                .emotionCount(emotionCount - 1)
                 .recommendTitle(aiResult.getRecommendTitle())
                 .recommendGenre(aiResult.getRecommendGenre())
-                .date(session.getCreatedAt().toLocalDate())
                 .build();
     }
 
+    // ---------------------------------------
+    // 4) 추가 질문 요청
+    // ---------------------------------------
     public FeedbackResponDTO handleFeedback(FeedbackRequestDTO request) {
 
         WritingSessionEntity session = writingSessionRepository.findById(request.getSessionId())
@@ -194,37 +165,31 @@ public class WritingSessionService {
         if (request.isSatisfied()) {
             session.setStatus(WritingSessionEntity.WritingStatus.COMPLETE);
             writingSessionRepository.save(session);
-
-            return FeedbackResponDTO.builder()
-                    .done(true)
-                    .build();
+            return FeedbackResponDTO.builder().done(true).build();
         }
 
-        // 추가 질문 개수만 저장하고, AI를 통해 질문을 생성하고 리턴
         session.setExtraQuestions(request.getAddN());
         writingSessionRepository.save(session);
 
-        // 모든 메시지 가져오고
-        List<MessagesEntity> allMessages =
+        List<MessagesEntity> history =
                 messageRepository.findBySessionIdOrderByCreatedAtAsc(request.getSessionId());
 
-        // 질문 받아옴
-        AiResponseDTO ai = aiService.generateNextQuestion(allMessages);
+        AiResponseDTO ai = aiService.generateNextQuestion(
+                session.getType().name(),
+                history
+        );
 
-        // AI 질문 저장
         messageRepository.save(
                 MessagesEntity.builder()
-                        .sessionId(request.getSessionId())
+                        .sessionId(session.getId())
                         .role(MessagesEntity.MessageRole.AI)
                         .content(ai.getNextQuestion())
                         .build()
         );
 
         return FeedbackResponDTO.builder()
-                .sessionId(request.getSessionId())
-                .question(ai.getNextQuestion())
                 .done(false)
+                .question(ai.getNextQuestion())
                 .build();
     }
-
 }
