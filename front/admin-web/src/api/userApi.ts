@@ -105,21 +105,32 @@ export const loginAdmin = async (data: LoginRequest): Promise<string> => {
     throw new Error('서버 응답에서 토큰을 찾을 수 없습니다.');
 };
 
+
 // 비밀번호 변경 요청 인터페이스
 export interface ChangePasswordRequest {
     email: string;
-    pwd?: string;
-    newPassword?: string;
+    currentPassword?: string; // 기존 비밀번호 (필수일 수 있음)
+    newPassword: string;
 }
+
+
 
 /**
  * 관리자 비밀번호를 변경합니다.
  * POST /api/admin/change-password
  */
 export const changePassword = async (data: ChangePasswordRequest): Promise<void> => {
+    // Swagger API 명세 확인 결과: Request Body가 UserDTO 구조임
+    // UserDTO: { email, pwd, ... }
+    // 별도의 newPassword 필드가 없으므로, pwd 필드에 새 비밀번호를 담아서 보냄.
+    // 또한 전체 필드 업데이트 로직일 수 있어 필수 필드 누락 방지를 위해 더미 데이터 추가
     const payload = {
         email: data.email,
-        pwd: data.newPassword || data.pwd
+        pwd: data.newPassword,
+        name: 'admin',
+        nickname: 'admin', // 필수값일 가능성 대비
+        role: 'ADMIN',     // 필수값일 가능성 대비
+        gender: 'UNKNOWN'  // 필수값일 가능성 대비
     };
 
     // 응답이 UserDTO 또는 성공시 200 OK

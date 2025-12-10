@@ -63,6 +63,7 @@ const Login = () => {
             const { changePassword } = await import('../api/userApi');
             await changePassword({
                 email: resetEmail,
+                currentPassword: currentPassword, // 기존 비밀번호 전달
                 newPassword: newPassword
             });
 
@@ -72,6 +73,7 @@ const Login = () => {
             setNewPassword('');
         } catch (err: any) {
             console.error('Password change failed:', err);
+            // ... (error handling) ...
             if (err.response && err.response.status === 404) {
                 setError('해당 이메일의 계정을 찾을 수 없습니다.');
             } else {
@@ -85,6 +87,7 @@ const Login = () => {
     return (
         <div className="flex h-screen w-full items-center justify-center bg-main">
             <div className="card w-96 p-8 shadow-lg animate-fade-in glass-panel">
+                {/* ... (header) ... */}
                 <div className="flex flex-col items-center mb-8">
                     <div className="w-12 h-12 rounded-xl bg-primary flex items-center justify-center text-white mb-4 shadow-md">
                         {isResetMode ? <Lock size={24} /> : <BookOpen size={24} />}
@@ -101,6 +104,7 @@ const Login = () => {
                                 <User className="text-muted" size={20} />
                                 <input
                                     type="email"
+                                    autoComplete="username"
                                     className="input-field flex-1"
                                     placeholder="admin@test.com"
                                     value={resetEmail}
@@ -115,6 +119,7 @@ const Login = () => {
                                 <Lock className="text-muted" size={20} />
                                 <input
                                     type="password"
+                                    autoComplete="current-password"
                                     className="input-field flex-1"
                                     placeholder="기존 비밀번호 입력"
                                     value={currentPassword}
@@ -129,6 +134,7 @@ const Login = () => {
                                 <Lock className="text-muted" size={20} />
                                 <input
                                     type="password"
+                                    autoComplete="new-password"
                                     className="input-field flex-1"
                                     placeholder="새 비밀번호 입력"
                                     value={newPassword}
@@ -147,7 +153,7 @@ const Login = () => {
                             {loading ? '변경 중...' : '비밀번호 변경'}
                         </button>
 
-                        <div className="flex justify-end mt-2">
+                        <div className="flex justify-center mt-2">
                             <button
                                 type="button"
                                 className="text-sm font-medium underline transition-colors"
@@ -208,7 +214,7 @@ const Login = () => {
                             {loading ? '로그인 중...' : '로그인'}
                         </button>
 
-                        <div className="flex justify-end mt-2">
+                        <div className="flex justify-center mt-2">
                             <button
                                 type="button"
                                 className="text-sm font-medium underline transition-colors"
