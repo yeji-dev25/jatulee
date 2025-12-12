@@ -21,7 +21,7 @@ public interface AdminUserRepository extends JpaRepository<UserEntity, Long> {
             MAX(w.created_at) AS lastActive,
             u.created_at
         FROM users u
-        LEFT JOIN writing_sessions w ON w.user_id = u.id AND w.deleted_at IS NULL
+        LEFT JOIN writing_sessions w ON w.user_id = u.id AND w.deleted_at IS NULL AND w.status = 'COMPLETE'
         WHERE (:searchType IS NULL OR :keyword IS NULL OR
                (:searchType = 'name' AND u.nickname LIKE %:keyword%) OR
                (:searchType = 'email' AND u.email LIKE %:keyword%))

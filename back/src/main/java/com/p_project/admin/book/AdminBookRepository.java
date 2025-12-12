@@ -15,6 +15,7 @@ public interface AdminBookRepository extends JpaRepository<WritingSessionEntity,
         FROM writing_sessions
         WHERE type = 'book'
           AND deleted_at IS NULL
+          AND status = 'COMPLETE'
         GROUP BY genre
         ORDER BY count DESC
         """, nativeQuery = true)

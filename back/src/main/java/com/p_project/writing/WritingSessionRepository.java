@@ -12,6 +12,7 @@ public interface WritingSessionRepository extends JpaRepository<WritingSessionEn
 
     @Query("SELECT w FROM WritingSessionEntity w " +
             "WHERE w.userId = :userId AND w.deletedAt IS NULL " +
+            "AND w.status = 'COMPLETE'" +
             "AND (w.type = 'diary' OR w.type = 'book') " +
             "ORDER BY w.createdAt DESC")
     List<WritingSessionEntity> findRecentWritingSessions(Long userId, Pageable pageable);
@@ -19,6 +20,7 @@ public interface WritingSessionRepository extends JpaRepository<WritingSessionEn
 
     @Query("SELECT COUNT(ws) FROM WritingSessionEntity ws " +
             "WHERE ws.emotion = :emotion " +
+            "AND ws.status = 'COMPLETE'" +
             "AND DATE(ws.createdAt) = :date")
     int countByEmotionAndCreatedAt(@Param("emotion") String emotion,
                                    @Param("date") LocalDate date);
