@@ -51,14 +51,14 @@ public class MyPageController {
         UserEntity user = userService.findById(userId)
                 .orElseThrow(() -> new IllegalStateException("존재하지 않는 사용자"));
 
-        if (!myPageDTO.getEmail().equals(user.getEmail())
-                && userService.existsEmail(myPageDTO.getEmail())) {
+        if (userService.existsEmailExceptUser(
+                myPageDTO.getEmail(), myPageDTO.getUserId())) {
             return ResponseEntity.status(HttpStatus.CONFLICT)
                     .body("이미 사용 중인 이메일입니다.");
         }
 
-        if (!myPageDTO.getNickName().equals(user.getNickname())
-                && userService.existsNickName(myPageDTO.getNickName())) {
+        if (userService.existsNicknameExceptUser(
+                myPageDTO.getNickName(), myPageDTO.getUserId())) {
             return ResponseEntity.status(HttpStatus.CONFLICT)
                     .body("이미 사용 중인 닉네임입니다.");
         }

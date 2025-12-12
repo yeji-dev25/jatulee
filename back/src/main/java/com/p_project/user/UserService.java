@@ -191,22 +191,12 @@ public class UserService {
         return userRepository.findByNickname(nickName);
     }
 
-    public boolean existsEmail(String email) {
-
-        boolean result = false;
-        if (userRepository.findByEmail(email).isPresent()) {
-            result = true;
-        }
-        return result;
+    public boolean existsEmailExceptUser(String email, Long userId) {
+        return userRepository.existsByEmailAndIdNot(email, userId);
     }
 
-    public boolean existsNickName(String nickName) {
-
-        boolean result = false;
-        if (userRepository.findByNickname(nickName).isPresent()) {
-            result = true;
-        }
-        return result;
+    public boolean existsNicknameExceptUser(String nickname, Long userId) {
+        return userRepository.existsByNicknameAndIdNot(nickname, userId);
     }
 
     public Long findUserIdByEmail (String email) {
