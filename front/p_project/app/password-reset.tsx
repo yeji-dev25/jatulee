@@ -64,7 +64,7 @@ export default function PasswordResetScreen() {
     await resetPassword(email, newPassword);
 
     Alert.alert("비밀번호 재설정 완료", "새 비밀번호가 성공적으로 변경되었습니다.");
-    router.replace('./index'); // 로그인 화면으로 돌아가기
+    router.replace('/'); // 로그인 화면으로 돌아가기
   } catch (err: any) {
     console.log(err.response?.data);
     Alert.alert("오류", "비밀번호 변경 중 문제가 발생했습니다.");

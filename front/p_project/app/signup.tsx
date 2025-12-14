@@ -75,7 +75,7 @@ export default function SignupScreen() {
       await AsyncStorage.setItem("user", JSON.stringify(data));
 
       Alert.alert("성공", "회원가입이 완료되었습니다!", [
-        { text: "확인", onPress: () => router.replace("../(tabs)") },
+        { text: "확인", onPress: () => router.replace("../(tabs)/home") },
       ]);
     } catch (error: any) {
       console.log("❌ [SIGNUP ERROR FRONT]", error);

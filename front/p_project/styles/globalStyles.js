@@ -36,6 +36,19 @@ export const globalStyles = StyleSheet.create({
     flex: 1,
   },
 
+  // 로딩 화면 추가
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: colors.light, // 로딩 화면이 덮을 수 있도록 불투명 배경색 설정
+  },
+  loadingText: {
+    marginTop: 10,
+    color: colors.primary,
+    fontSize: 16,
+  },
+
   // Header styles
   header: {
     alignItems: 'center',
@@ -62,6 +75,11 @@ export const globalStyles = StyleSheet.create({
     fontSize: 16,
     color: colors.gray,
   },
+  center: {
+  flex: 1,
+  justifyContent: "center",
+  alignItems: "center",
+},
 
   // Button styles
   buttonContainer: {

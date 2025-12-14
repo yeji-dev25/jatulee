@@ -1,74 +1,36 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, Alert, StyleSheet } from 'react-native';
-import { globalStyles, colors } from '../styles/globalStyles';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import React, { useState, useEffect } from "react";
+import { useRouter } from "expo-router";
+import {
+  View,
+  Text,
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+} from "react-native";
+import { globalStyles, colors } from "../styles/globalStyles";
+import { getBookReportList } from "../api/services"; //🔥 완성된 독후감 API
 
 export default function BookReviewList() {
+
+  
   const [reviews, setReviews] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     loadReviews();
   }, []);
-
+  const router = useRouter();
   const loadReviews = async () => {
-    // 더미 데이터 삽입
-    const dummyData = [
-      {
-        id: 1,
-        title: '행복의 기원',
-        content: '이 책은 삶의 행복에 대한 중요한 통찰을 제공합니다. 나는 이 책에서 행복의 본질을 새롭게 깨달았습니다.',
-        emotion: '행복',
-        type: 'book_review',
-        author: '서은국',
-        privacy: 'public',
-        rating: 5,
-      },
-      {
-        id: 2,
-        title: '아몬드',
-        content: '이 책은 심리적으로 어려운 상황에 처한 사람들의 내면을 잘 묘사합니다. 읽으면서 울컥하는 감정을 느꼈습니다.',
-        emotion: '슬픔',
-        type: 'book_review',
-        author: '손원평',
-        privacy: 'friends',
-        rating: 4,
-      },
-    ];
+    try {
+      const res = await getBookReportList(); //🔥 완료된 독후감 리스트
+      setReviews(res);
+      console.log("📘 getBookReportList 결과:", res);
 
-    setReviews(dummyData);
-    setIsLoading(false);
-  };
-
-  const analyzeEmotion = (review: any) => {
-    const allText = review.content.toLowerCase();
-
-    if (allText.includes('행복') || allText.includes('좋') || allText.includes('기쁘')) return '😊 긍정';
-    if (allText.includes('슬프') || allText.includes('우울') || allText.includes('힘들')) return '😢 부정';
-    if (allText.includes('화나') || allText.includes('짜증') || allText.includes('분노')) return '😠 분노';
-    return '😐 중립';
-  };
-
-  const recommendContent = (emotion: '😊 긍정' | '😢 부정' | '😠 분노' | '😐 중립') => {
-    const recommendations = {
-      '😊 긍정': {
-        song: 'Happy - Pharrell Williams',
-        book: '행복의 기원 - 서은국',
-      },
-      '😢 부정': {
-        song: 'Fix You - Coldplay',
-        book: '아몬드 - 손원평',
-      },
-      '😠 분노': {
-        song: 'Lovely - Billie Eilish',
-        book: '분노와 슬픔 - 김누리',
-      },
-      '😐 중립': {
-        song: 'Weightless - Marconi Union',
-        book: '달러구트 꿈 백화점 - 이미예',
-      },
-    };
-    return recommendations[emotion] || recommendations['😐 중립'];
+    } catch (e) {
+      console.error("독후감 목록 불러오기 실패:", e);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -79,31 +41,49 @@ export default function BookReviewList() {
         ) : reviews.length === 0 ? (
           <Text>독후감이 없습니다.</Text>
         ) : (
-          reviews.map((review: any, index: number) => {
-            const emotion = analyzeEmotion(review);
-            const recommendation = recommendContent(emotion);
-
+          reviews.map((review: any) => {
             return (
-              <View key={index} style={styles.reviewCard}>
+              <TouchableOpacity
+                key={review.id}
+                style={styles.reviewCard}
+                activeOpacity={0.8}
+                onPress={() =>
+                  router.push({
+                    pathname: "/diary/detail",
+                    params: {
+                      id: review.id,
+                      type: "book",
+                    },
+                  })
+                }
+              >
+                {/* 제목 */}
                 <Text style={styles.reviewTitle}>{review.title}</Text>
-                <Text style={styles.reviewText}>{review.content}</Text>
 
-                {/* 감정 분석 배너 */}
-                <View style={styles.bannerContainer}>
-                  <Text style={styles.bannerText}>
-                    나와 같은 감정을 느낀 사람은 <Text style={styles.bannerHighlight}>10명</Text>입니다.
-                  </Text>
-                </View>
+                {/* 생성일 */}
+                <Text style={styles.dateText}>
+                  작성일: {review.createdAt?.slice(0, 10)}
+                </Text>
 
-                {/* 추천 배너 */}
-                <View style={styles.recommendationContainer}>
-                  <Text style={styles.recommendationText}>
-                    {review.type === 'book_review' 
-                      ? `"${recommendation.book}" 책을 추천합니다`
-                      : `"${recommendation.song}" 노래를 추천합니다`}
-                  </Text>
-                </View>
-              </View>
+                {/* 감정 */}
+                {review.emotion && (
+                  <Text style={styles.emotionText}>감정: {review.emotion}</Text>
+                )}
+
+                {/* 장르 */}
+                {review.genre && (
+                  <Text style={styles.genreText}>장르: {review.genre}</Text>
+                )}
+
+                {/* 추천 책 제목 */}
+                {review.recommendTitle && (
+                  <View style={styles.recommendationContainer}>
+                    <Text style={styles.recommendationText}>
+                      📚 추천 도서: "{review.recommendTitle}"
+                    </Text>
+                  </View>
+                )}
+              </TouchableOpacity>
             );
           })
         )}
@@ -118,7 +98,7 @@ const styles = StyleSheet.create({
     padding: 20,
     borderRadius: 12,
     marginBottom: 20,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 3,
@@ -126,36 +106,34 @@ const styles = StyleSheet.create({
   },
   reviewTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     color: colors.dark,
+    marginBottom: 6,
   },
-  reviewText: {
-    fontSize: 16,
+  dateText: {
+    fontSize: 13,
     color: colors.gray,
-    marginVertical: 10,
+    marginBottom: 8,
   },
-  bannerContainer: {
-    backgroundColor: colors.light,
-    padding: 10,
-    borderRadius: 8,
-    marginVertical: 10,
+  emotionText: {
+    fontSize: 14,
+    color: colors.primary,
+    marginBottom: 4,
   },
-  bannerText: {
+  genreText: {
     fontSize: 14,
     color: colors.dark,
-  },
-  bannerHighlight: {
-    fontWeight: '600',
-    color: colors.primary,
+    marginBottom: 6,
   },
   recommendationContainer: {
-    backgroundColor: colors.primary + '15',
-    padding: 10,
+    backgroundColor: colors.primary + "20",
+    padding: 12,
     borderRadius: 8,
+    marginTop: 10,
   },
   recommendationText: {
     fontSize: 14,
     color: colors.dark,
-    fontWeight: '600',
+    fontWeight: "600",
   },
 });

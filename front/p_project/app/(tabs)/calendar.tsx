@@ -1,9 +1,10 @@
 // app/(tabs)/calendar.tsx - 캘린더 화면
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, Modal, Dimensions, StyleSheet } from 'react-native';
+import { Alert , View, Text, TouchableOpacity, ScrollView, Modal, Dimensions, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { globalStyles, colors } from '../../styles/globalStyles';
+import { getMyCalendar } from '../../api/services';
 
 const { width: screenWidth } = Dimensions.get('window');
 
@@ -12,7 +13,6 @@ interface Diary {
   title: string;
   content: string;
   emotion: string;
-  date: string;
   dateString: string;
   type: 'diary' | 'book_review';
   genre?: string | null;
@@ -31,26 +31,9 @@ interface SelectedCalendarDate {
 
 export default function CalendarScreen() {
   const router = useRouter();
-  const [diaries, setDiaries] = useState<Diary[]>([]);
   const [showDateModal, setShowDateModal] = useState(false);
   const [selectedCalendarDate, setSelectedCalendarDate] = useState<SelectedCalendarDate | null>(null);
   const [currentDate, setCurrentDate] = useState(new Date());
-
-  useEffect(() => {
-    loadDiaries();
-  }, []);
-
-  const loadDiaries = async () => {
-    try {
-      const diariesData = await AsyncStorage.getItem('diaries');
-      if (diariesData) {
-        setDiaries(JSON.parse(diariesData));
-      }
-    } catch (error) {
-      console.error('일기 로드 실패:', error);
-    }
-  };
-
   const currentYear = currentDate.getFullYear();
   const currentMonth = currentDate.getMonth();
   const today = new Date();
@@ -75,19 +58,42 @@ export default function CalendarScreen() {
     calendarDays.push(day);
   }
 
-  const handleDatePress = (day: number) => {
-    const dateString = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-    const diaryForDate = diaries.find(diary => diary.dateString === dateString);
-    
+const handleDatePress = async (day: number) => {
+  const dateString = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+
+  try {
+    // 🔥 서버에서 해당 날짜의 일기/독후감 조회
+    const data = await getMyCalendar(dateString);
+
+    const diaryData = data.diaries?.length > 0 ? data.diaries[0] : null;
+
     setSelectedCalendarDate({
       day,
       dateString,
       displayDate: `${currentYear}년 ${currentMonth + 1}월 ${day}일`,
-      hasDiary: !!diaryForDate,
-      diary: diaryForDate
+      hasDiary: !!diaryData,
+      diary: diaryData
+        ? {
+            id: diaryData.id,
+            title: diaryData.title,
+            content: diaryData.content,
+            emotion: diaryData.emotion,
+            genre: diaryData.genre,
+            dateString: diaryData.createdAt,
+            type: "diary",
+            author: "",
+            privacy: "private"
+          }
+        : undefined,
     });
+
     setShowDateModal(true);
-  };
+  } catch (error) {
+    console.error("날짜 조회 실패:", error);
+    Alert.alert("오류", "해당 날짜 데이터를 불러올 수 없습니다.");
+  }
+};
+
 
   const handleDateAction = (action: 'view' | 'write') => {
     setShowDateModal(false);
@@ -103,13 +109,14 @@ export default function CalendarScreen() {
         break;
       case 'write':
         if (selectedCalendarDate) {
-          router.push({
-            pathname: '/diary/write',
-            params: { 
-              date: selectedCalendarDate.dateString,
-              displayDate: selectedCalendarDate.displayDate
-            }
-          } as any);
+      router.push({
+  pathname: "/diary/write",
+  params: {
+    date: selectedCalendarDate.dateString,
+    displayDate: selectedCalendarDate.displayDate
+  }
+});
+
         }
         break;
     }
@@ -124,9 +131,6 @@ export default function CalendarScreen() {
     }
     setCurrentDate(newDate);
   };
-
-  // 독후감 리스트 필터링
-  const bookReviews = diaries.filter(d => d.type === 'book_review');
 
   return (
     <ScrollView style={globalStyles.screen}>
@@ -164,7 +168,7 @@ export default function CalendarScreen() {
             
             const isToday = day === todayDate && currentMonth === todayMonth && currentYear === todayYear;
             const dateString = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-            const hasDiary = diaries.some(diary => diary.dateString === dateString);
+            const hasDiary = false;
             
             return (
               <TouchableOpacity
@@ -183,7 +187,7 @@ export default function CalendarScreen() {
 
       {/* 독후감 리스트 배너 */}
       <View style={styles.bookReviewBanner}>
-        <Text style={styles.bannerTitle}>📚 독후감 리스트</Text>
+        <Text style={styles.bannerTitle}>📚   자투리 리스트</Text>
         <TouchableOpacity onPress={() => router.push('../book-reviews')} style={styles.bannerButton}>
           <Text style={styles.bannerText}>보기</Text>
         </TouchableOpacity>

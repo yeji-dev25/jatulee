@@ -16,20 +16,20 @@ export default function RootLayout() {
   if (!loaded) return null;
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack screenOptions={{ headerShown: false }}>
-      
+    <ThemeProvider value={DefaultTheme}>
+      <Stack
+        screenOptions={{
+          headerShown: false,
+          contentStyle: { backgroundColor: '#fff' }, // ⭐ 검은 화면 제거
+        }}
+      >
         <Stack.Screen name="index" />
-
-        {/* 로그인 화면 */}
         <Stack.Screen name="login" />
-
-        {/* 탭 라우트 */}
         <Stack.Screen name="(tabs)" />
-
         <Stack.Screen name="+not-found" />
       </Stack>
-      <StatusBar style="auto" />
+
+      <StatusBar style="dark" />
     </ThemeProvider>
   );
 }

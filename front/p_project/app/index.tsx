@@ -14,35 +14,46 @@ export default function LoginScreen() {
   const [loading, setLoading] = useState(false);
 
 
-  const handleLogin = async () => {
-    if (!email.trim() || !password.trim()) {
-      Alert.alert('알림', '이메일과 비밀번호를 입력해주세요.');
+const handleLogin = async () => {
+  if (!email.trim() || !password.trim()) {
+    Alert.alert('알림', '이메일과 비밀번호를 입력해주세요.');
+    return;
+  }
+
+  setLoading(true);
+
+  try {
+    const token = await loginUser(email.trim(), password.trim());
+
+    if (!token) {
+      Alert.alert("로그인 실패", "토큰을 받아올 수 없습니다.");
       return;
     }
 
-    setLoading(true);
+    console.log("🟩 [LOGIN] token from server =", token);
 
-    try {
-      // 🔥 실제 백엔드 API 요청
-      const data = await loginUser(email.trim(), password.trim());
+    //🔥 올바른 저장 방식
+    await AsyncStorage.setItem("access_token", token.accessToken);
+    await AsyncStorage.setItem("refresh_token", token.refreshToken);
+    await AsyncStorage.setItem("user_id", String(token.userID));
 
-      // 로그인 성공 → 유저 정보 저장
-      await AsyncStorage.setItem("user", JSON.stringify(data));
+    // Navigate
+    router.replace("./(tabs)/home");
 
-      // 🔥 tabs로 이동
-      router.replace("./(tabs)/home");
+  } catch (error) {
+    console.error(error);
+    Alert.alert("로그인 실패", "이메일 또는 비밀번호가 올바르지 않습니다.");
+  } finally {
+    setLoading(false);
+  }
+};
 
-    } catch (error) {
-      console.error(error);
-      Alert.alert("로그인 실패", "이메일 또는 비밀번호가 올바르지 않습니다.");
-    } finally {
-      setLoading(false);
-    }
-  };
+
+
   return (
     <View style={globalStyles.screen}>
       <View style={globalStyles.loginContainer}>
-        <Text style={globalStyles.title}>끄적이조 📝</Text>
+        <Text style={globalStyles.title}>자투리 📝</Text>
 
         <View style={globalStyles.inputContainer}>
           <Text style={globalStyles.inputLabel}>이메일</Text>
