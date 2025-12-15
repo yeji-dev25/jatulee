@@ -6,7 +6,6 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -25,10 +24,10 @@ public class BookService {
         return bookRepository.countByUserIdAndTypeAndStatusAndDeletedAtIsNull(userId, WritingSessionEntity.Type.book, WritingSessionEntity.WritingStatus.COMPLETE);
     }
 
-    public List<DiaryDTO> getAllReports() {
-        return bookRepository.findAll()
+    public List<DiaryDTO> getAllReports(Long userId) {
+        return bookRepository.findByUserIdAndStatusAndDeletedAtIsNullOrderByCreatedAtDesc(userId,
+                        WritingSessionEntity.WritingStatus.COMPLETE)
                 .stream()
-                .sorted((a, b) -> b.getCreatedAt().compareTo(a.getCreatedAt())) // 최신순 정렬
                 .map(DiaryDTO::fromEntity)
                 .collect(Collectors.toList());
     }

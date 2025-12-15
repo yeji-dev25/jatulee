@@ -1,8 +1,10 @@
 package com.p_project.book;
 
 import com.p_project.diary.DiaryDTO;
+import com.p_project.oauth2.CustomOAuth2User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -17,8 +19,9 @@ public class BookController {
 
     // 전체 독후감 리스트 조회
     @GetMapping("/list")
-    public ResponseEntity<List<DiaryDTO>> getAllReports() {
-        List<DiaryDTO> reports = bookService.getAllReports();
+    public ResponseEntity<List<DiaryDTO>> getAllReports(Authentication auth) {
+        CustomOAuth2User principal = (CustomOAuth2User) auth.getPrincipal();
+        List<DiaryDTO> reports = bookService.getAllReports(principal.getUserId());
         return ResponseEntity.ok(reports);
     }
 

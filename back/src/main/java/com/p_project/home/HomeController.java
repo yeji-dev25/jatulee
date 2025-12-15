@@ -1,7 +1,6 @@
 package com.p_project.home;
 
 import com.p_project.oauth2.CustomOAuth2User;
-import com.p_project.user.UserEntity;
 import com.p_project.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -11,8 +10,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.Optional;
 
 @Slf4j
 @RestController
@@ -47,12 +44,7 @@ public class HomeController {
         log.info("token = {}", authentication.getPrincipal());
 
         CustomOAuth2User customUser = (CustomOAuth2User) authentication.getPrincipal();
-        String email = customUser.getEmail();
-
-        Optional<UserEntity> userDTO = userRepository.findByEmail(email);
-
-        Long userId = userDTO.get().getId();
-        log.info(String.valueOf(userId));
+        Long userId = customUser.getUserId();
 
         return ResponseEntity.ok(userId);
     }

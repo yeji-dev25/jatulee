@@ -14,4 +14,9 @@ public interface BookRepository extends JpaRepository<WritingSessionEntity, Long
             WritingSessionEntity.Type type,
             WritingSessionEntity.WritingStatus status
     );
+
+    List<WritingSessionEntity> findByUserIdAndStatusAndDeletedAtIsNullOrderByCreatedAtDesc(
+            Long userId,
+            WritingSessionEntity.WritingStatus status
+    );
 }
