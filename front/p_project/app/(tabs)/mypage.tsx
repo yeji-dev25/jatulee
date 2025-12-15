@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, Alert, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, Alert, StyleSheet, Image } from 'react-native';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage'; // AsyncStorage import
 import { globalStyles, colors } from '../../styles/globalStyles';
@@ -41,15 +41,14 @@ export default function MyPageScreen() {
     const profileData = await getUserProfile(); // 이제 token, userId 안 넣음
 
     setUser({
-  id: profileData.userId,
-  email: profileData.email,
-  username: profileData.nickName,
-  nickName: profileData.nickName,   // 🔥 추가
-  name: profileData.nickName,
-  joinDate: "",
-  profileImage: profileData.profileURL
-});
-
+      id: profileData.userId,
+      email: profileData.email,
+      username: profileData.nickName,
+      nickName: profileData.nickName,   // 🔥 추가
+      name: profileData.nickName,
+      joinDate: "",
+      profileImage: profileData.profileURL
+    });
   } catch (error) {
     console.error('데이터 로드 실패:', error);
     Alert.alert("오류", "데이터 로드 실패");
@@ -118,7 +117,14 @@ export default function MyPageScreen() {
       <View style={styles.profileCard}>
         <View style={styles.profileHeader}>
           <View style={styles.avatarContainer}>
-            <Text style={styles.avatar}>👤</Text>
+            {user?.profileImage ? (
+              <Image
+                source={{ uri: user.profileImage }}
+                style={styles.avatarImage}
+              />
+            ) : (
+              <Text style={styles.avatar}>👤</Text>
+            )}
           </View>
           <View style={styles.profileInfo}>
             {/* 사용자 이름 표시 */}
@@ -190,6 +196,12 @@ const styles = StyleSheet.create({
     alignItems: 'center' as const,
     justifyContent: 'center' as const,
     marginRight: 15,
+    overflow: 'hidden',
+  },
+  avatarImage: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
   },
   avatar: {
     fontSize: 30,

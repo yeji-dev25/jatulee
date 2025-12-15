@@ -114,7 +114,7 @@ export async function updateProfileImage(file: {
   try {
     console.log("===== PROFILE IMAGE UPLOAD START =====");
 
-    const authHeaders = await getAuthHeaders();
+    const accessToken = await AsyncStorage.getItem("access_token");
 
     const formData = new FormData();
     formData.append("file", {
@@ -123,19 +123,27 @@ export async function updateProfileImage(file: {
       type: file.type,
     } as any);
 
-    const res = await uploadApi.post(
-      "/api/mypage/profile",
-      formData,
+    const response = await fetch(
+      "http://ceprj.gachon.ac.kr:60013/api/mypage/profile",
       {
+        method: "POST",
         headers: {
-          ...authHeaders,
-          // ❗ Content-Type 절대 지정하지 않음
+          Authorization: `Bearer ${accessToken}`,
+          // ❗ Content-Type 절대 넣지 말 것
         },
+        body: formData,
       }
     );
 
-    console.log("✅ 업로드 성공:", res.data);
-    return res.data;
+    if (!response.ok) {
+      const text = await response.text();
+      console.error("업로드 실패 응답:", text);
+      throw new Error("프로필 이미지 업로드 실패");
+    }
+
+    const data = await response.json();
+    console.log("✅ 업로드 성공:", data);
+    return data;
   } catch (err) {
     console.error("프로필 이미지 업로드 실패", err);
     throw err;
