@@ -1,12 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  ScrollView,
-  Alert,
-  StyleSheet,
-} from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, Alert, StyleSheet, Image } from 'react-native';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { globalStyles, colors } from '../../styles/globalStyles';
@@ -41,21 +34,22 @@ export default function MyPageScreen() {
 
       const profileData = await getUserProfile();
 
-      setUser({
-        id: profileData.userId,
-        email: profileData.email,
-        username: profileData.nickName,
-        nickName: profileData.nickName,
-        name: profileData.nickName,
-        joinDate: '',
-        profileImage: profileData.profileURL,
-      });
-    } catch (error) {
-      Alert.alert('오류', '데이터 로드 실패');
-    } finally {
-      setLoading(false);
-    }
-  };
+    setUser({
+      id: profileData.userId,
+      email: profileData.email,
+      username: profileData.nickName,
+      nickName: profileData.nickName,   // 🔥 추가
+      name: profileData.nickName,
+      joinDate: "",
+      profileImage: profileData.profileURL
+    });
+  } catch (error) {
+    console.error('데이터 로드 실패:', error);
+    Alert.alert("오류", "데이터 로드 실패");
+  } finally {
+    setLoading(false);
+  }
+};
 
   const handleLogout = async () => {
     Alert.alert('로그아웃', '정말 로그아웃하시겠습니까?', [
@@ -106,7 +100,14 @@ export default function MyPageScreen() {
       <View style={styles.profileCard}>
         <View style={styles.profileHeader}>
           <View style={styles.avatarContainer}>
-            <Text style={styles.avatar}>👤</Text>
+            {user?.profileImage ? (
+              <Image
+                source={{ uri: user.profileImage }}
+                style={styles.avatarImage}
+              />
+            ) : (
+              <Text style={styles.avatar}>👤</Text>
+            )}
           </View>
 
           <View style={styles.profileInfo}>
@@ -168,6 +169,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 15,
+    overflow: 'hidden',
+  },
+  avatarImage: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
   },
   avatar: {
     fontSize: 30,

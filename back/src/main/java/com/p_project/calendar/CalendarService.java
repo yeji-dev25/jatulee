@@ -23,7 +23,7 @@ public class CalendarService {
     public CalendarDTO getCalendarSummary(Long userId, LocalDate date){
 
         int countDiary = diaryRepository.countByUserIdAndTypeAndStatusAndDeletedAtIsNull(userId, WritingSessionEntity.Type.diary, WritingSessionEntity.WritingStatus.COMPLETE);
-        int countBook = bookRepository.countByUserIdAndTypeAndStatusAndDeletedAtIsNull(userId, WritingSessionEntity.Type.diary, WritingSessionEntity.WritingStatus.COMPLETE);
+        int countBook = bookRepository.countByUserIdAndTypeAndStatusAndDeletedAtIsNull(userId, WritingSessionEntity.Type.book, WritingSessionEntity.WritingStatus.COMPLETE);
         int totalNum = countDiary + countBook;
 
 //      date 값이 null이라면 오늘 날짜로 체크
@@ -44,17 +44,15 @@ public class CalendarService {
 
     public CalendarDTO getFriendCalendarSummary(Long userId, Long friendId, LocalDate date){
 
-        int countDiary = diaryRepository.countByUserIdAndTypeAndStatusAndDeletedAtIsNull(userId, WritingSessionEntity.Type.diary, WritingSessionEntity.WritingStatus.COMPLETE);
-        int countBook = bookRepository.countByUserIdAndTypeAndStatusAndDeletedAtIsNull(userId, WritingSessionEntity.Type.diary, WritingSessionEntity.WritingStatus.COMPLETE);
+        int countDiary = diaryRepository.countByUserIdAndTypeAndStatusAndDeletedAtIsNull(friendId, WritingSessionEntity.Type.diary, WritingSessionEntity.WritingStatus.COMPLETE);
+        int countBook = bookRepository.countByUserIdAndTypeAndStatusAndDeletedAtIsNull(friendId, WritingSessionEntity.Type.book, WritingSessionEntity.WritingStatus.COMPLETE);
         int totalNum = countDiary + countBook;
         String friendNickName = userRepository.findById(friendId)
                 .map(UserEntity::getNickname)
                 .orElse("Unknown");
 
 
-//      date 값이 null이라면 오늘 날짜로 체크
-        LocalDate targetDate = (date != null) ? date : java.time.LocalDate.now();
-        List<DiaryDTO> diaryDto = diaryRepository.findActiveDiarySessionsByUserIdAndDate(friendId, targetDate)
+        List<DiaryDTO> diaryDto = diaryRepository.findActiveDiarySessionsByUserId(friendId)
                 .stream()
                 .map(DiaryDTO::fromEntity)
                 .toList();

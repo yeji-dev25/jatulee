@@ -24,4 +24,15 @@ public interface DiaryRepository extends JpaRepository<WritingSessionEntity, Lon
             @Param("userId") Long userId,
             @Param("date") LocalDate date
     );
+
+    @Query(value = """
+        SELECT *
+        FROM writing_sessions
+        WHERE user_id = :userId
+          AND deleted_at IS NULL
+          AND status = 'COMPLETE'
+        """, nativeQuery = true)
+    List<WritingSessionEntity> findActiveDiarySessionsByUserId(
+            @Param("userId") Long userId
+    );
 }

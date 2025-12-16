@@ -12,13 +12,15 @@
       "supportsTablet": true
     },
     "android": {
-      "usesCleartextTraffic": true,
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
+      "permissions": [
+        "INTERNET"
+      ],
       "edgeToEdgeEnabled": true,
-      "package": "com.makanghyeon.p_project"
+      "package": "com.choyeji.p_project"
     },
     "web": {
       "bundler": "metro",
@@ -35,6 +37,14 @@
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
         }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "usesCleartextTraffic": true
+          }
+        }
       ]
     ],
     "experiments": {
@@ -43,8 +53,9 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "da8ddadb-535a-490b-9cff-ac3932b9bf03"
+        "projectId": "b88d232b-051e-40d0-a06e-86f40769b6ab"
       }
-    }
+    },
+    "owner": "choyeji"
   }
 }

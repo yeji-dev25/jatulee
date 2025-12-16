@@ -17,12 +17,14 @@ public class DiaryDTO {
     private String content;
     private String genre;
     private String emotion;
+    private WritingSessionEntity.Type type;
     private LocalDate createdAt;
 
     public static DiaryDTO fromEntity(WritingSessionEntity entity) {
         return DiaryDTO.builder()
                 .id(entity.getId())
                 .title(entity.getTitle())
+                .type(entity.getType())
                 .content(entity.getContent())
                 .genre(entity.getGenre())
                 .emotion(entity.getEmotion())
