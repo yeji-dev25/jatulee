@@ -5,7 +5,7 @@ const { width: screenWidth } = Dimensions.get('window');
 
 export const colors = {
   primary: '#0984e3',
-  secondary: '#74b9ff', 
+  secondary: '#74b9ff',
   success: '#00b894',
   danger: '#e74c3c',
   warning: '#f39c12',
@@ -15,41 +15,82 @@ export const colors = {
   gray: '#636e72',
   lightGray: '#ddd',
   white: '#ffffff',
-   kakaoYellow: '#FEE500',
+  kakaoYellow: '#FEE500',
   googleBlue: '#34b7f1',
   naverGreen: '#00C300',
-  
+   primary: '#B17457',      // 메인 버튼
+  secondary: '#B17457',  // 보조 강조
+  accent: '#8B5A3C',       // 강한 강조
 };
 
 export const globalStyles = StyleSheet.create({
-  // Container styles
+  /* =========================
+     Layout / Container
+  ========================= */
   container: {
     flex: 1,
-    backgroundColor: colors.white,  // 기본 흰색 배경
+    backgroundColor: colors.white,
   },
-  screen: {
-    flex: 1,
-    padding: 20,
-    backgroundColor: colors.white,  // 흰색 배경
-  },
+ screen: {
+  flex: 1,
+  backgroundColor: colors.background, // #FAF7F0
+  padding: 20,
+},
   scrollView: {
     flex: 1,
   },
+  center: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
 
-  // 로딩 화면 추가
+  /* =========================
+     Loading
+  ========================= */
   loadingContainer: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: colors.light, // 로딩 화면이 덮을 수 있도록 불투명 배경색 설정
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: colors.light,
   },
   loadingText: {
     marginTop: 10,
     color: colors.primary,
     fontSize: 16,
+    fontFamily: 'DefaultFont',
   },
 
-  // Header styles
+  /* =========================
+     Typography (🔥 핵심)
+  ========================= */
+  title: {
+    fontFamily: 'TitleFont',
+    fontSize: 24,
+    fontWeight: '700',
+    color: colors.dark,
+  },
+  subtitle: {
+    fontFamily: 'SubTitleFont',
+    fontSize: 16,
+    color: colors.gray,
+  },
+  text: {
+    fontFamily: 'DefaultFont',
+    fontSize: 14,
+    color: colors.dark,
+  },
+  emptyText: {
+    textAlign: 'center',
+    color: colors.lightGray,
+    fontSize: 16,
+    marginTop: 20,
+    fontFamily: 'DefaultFont',
+  },
+
+  /* =========================
+     Header
+  ========================= */
   header: {
     alignItems: 'center',
     marginBottom: 30,
@@ -65,23 +106,10 @@ export const globalStyles = StyleSheet.create({
     flexDirection: 'row',
     gap: 10,
   },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: colors.dark,
-    marginBottom: 5,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: colors.gray,
-  },
-  center: {
-  flex: 1,
-  justifyContent: "center",
-  alignItems: "center",
-},
 
-  // Button styles
+  /* =========================
+     Buttons
+  ========================= */
   buttonContainer: {
     flexDirection: 'row',
     justifyContent: 'space-around',
@@ -98,7 +126,7 @@ export const globalStyles = StyleSheet.create({
     backgroundColor: colors.primary,
   },
   secondaryButton: {
-    backgroundColor: 'transparent',
+   backgroundColor: colors.secondary,
     borderWidth: 1,
     borderColor: colors.primary,
   },
@@ -115,23 +143,22 @@ export const globalStyles = StyleSheet.create({
     backgroundColor: colors.gray,
     opacity: 0.6,
   },
-  smallButton: {
-    minWidth: 60,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-  },
   buttonText: {
     color: colors.white,
     fontSize: 16,
     fontWeight: '600',
+    fontFamily: 'DefaultFont',
   },
   secondaryButtonText: {
-    color: colors.primary,
+     color: colors.white,
     fontSize: 16,
     fontWeight: '600',
+    fontFamily: 'DefaultFont',
   },
 
-  // Input styles
+  /* =========================
+     Inputs
+  ========================= */
   inputContainer: {
     width: '100%',
     marginBottom: 20,
@@ -141,6 +168,7 @@ export const globalStyles = StyleSheet.create({
     fontWeight: '600',
     color: colors.dark,
     marginBottom: 8,
+    fontFamily: 'SubTitleFont',
   },
   textInput: {
     backgroundColor: colors.white,
@@ -149,6 +177,7 @@ export const globalStyles = StyleSheet.create({
     borderRadius: 8,
     padding: 15,
     fontSize: 16,
+    fontFamily: 'DefaultFont',
   },
   searchInput: {
     backgroundColor: colors.white,
@@ -159,9 +188,12 @@ export const globalStyles = StyleSheet.create({
     paddingVertical: 12,
     fontSize: 16,
     flex: 1,
+    fontFamily: 'DefaultFont',
   },
 
-  // Login styles
+  /* =========================
+     Login / Social
+  ========================= */
   loginContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -170,7 +202,7 @@ export const globalStyles = StyleSheet.create({
   },
   linkContainer: {
     flexDirection: 'row',
-    justifyContent: 'center', 
+    justifyContent: 'center',
     alignItems: 'center',
     marginTop: 20,
   },
@@ -178,28 +210,37 @@ export const globalStyles = StyleSheet.create({
     color: colors.primary,
     fontSize: 16,
     fontWeight: '600',
+    fontFamily: 'DefaultFont',
   },
   linkSeparator: {
     color: colors.gray,
     marginHorizontal: 15,
   },
-  successMessage: {
-    backgroundColor: colors.light,
-    padding: 15,
-    borderRadius: 8,
-    marginVertical: 10,
-    borderLeftWidth: 4,
-    borderLeftColor: colors.success,
+  socialLoginContainer: {
+    marginTop: 20,
+    alignItems: 'center',
+    width: '100%',
   },
-  successText: {
-    color: colors.success,
-    fontSize: 14,
-    textAlign: 'center',
+  socialButton: {
+    paddingVertical: 15,
+    borderRadius: 8,
+    marginTop: 10,
+    width: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  socialButtonText: {
+    color: colors.white,
+    fontSize: 16,
+    fontWeight: '600',
+    fontFamily: 'DefaultFont',
   },
 
-  // Card styles
+  /* =========================
+     Card / List
+  ========================= */
   card: {
-    backgroundColor: colors.white,
+    backgroundColor: colors.card,
     padding: 20,
     borderRadius: 12,
     marginBottom: 15,
@@ -209,8 +250,6 @@ export const globalStyles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
   },
-
-  // List styles
   listItem: {
     backgroundColor: colors.white,
     padding: 15,
@@ -233,76 +272,18 @@ export const globalStyles = StyleSheet.create({
     fontWeight: 'bold',
     color: colors.dark,
     flex: 1,
+    fontFamily: 'SubTitleFont',
   },
   listItemSubtitle: {
     fontSize: 14,
     color: colors.gray,
     marginBottom: 5,
+    fontFamily: 'DefaultFont',
   },
 
-    socialButton: {
-    paddingVertical: 15,      // 세로 방향 padding을 균일하게 설정
-    borderRadius: 8,
-    marginTop: 10,
-    width: '100%',            // 버튼 너비를 100%로 설정
-    alignItems: 'center',
-    justifyContent: 'center', // 버튼 내 텍스트를 중앙에 정렬
-  },
-  socialButtonText: {
-    color: colors.white,
-    fontSize: 16,
-    fontWeight: '600',
-  },
-
-    socialLoginContainer: {
-    marginTop: 20,
-    alignItems: 'center',
-    width: '100%', // 버튼들이 일정한 너비를 가지도록 설정
-  },
-
-  // 로그인 스타일
-  loginContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-
-  // Section styles
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: colors.dark,
-    marginBottom: 15,
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 15,
-  },
-
-  // Icon styles
-  iconButton: {
-    padding: 8,
-    backgroundColor: colors.white,
-    borderRadius: 20,
-    position: 'relative',
-  },
-  iconText: {
-    fontSize: 18,
-  },
-  badge: {
-    position: 'absolute',
-    top: 2,
-    right: 2,
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: colors.danger,
-  },
-
-  // Modal styles  
+  /* =========================
+     Modal
+  ========================= */
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.5)',
@@ -322,12 +303,14 @@ export const globalStyles = StyleSheet.create({
     color: colors.dark,
     textAlign: 'center',
     marginBottom: 15,
+    fontFamily: 'TitleFont',
   },
   modalText: {
     fontSize: 16,
     color: colors.gray,
     textAlign: 'center',
     marginBottom: 20,
+    fontFamily: 'DefaultFont',
   },
   modalButtons: {
     flexDirection: 'row',
@@ -335,13 +318,5 @@ export const globalStyles = StyleSheet.create({
   },
   modalButton: {
     minWidth: 80,
-  },
-
-  // Text styles
-  emptyText: {
-    textAlign: 'center',
-    color: colors.gray,
-    fontSize: 16,
-    marginTop: 20,
   },
 });

@@ -1,4 +1,4 @@
-// app/(tabs)/_layout.tsx - 탭 레이아웃
+// app/(tabs)/_layout.tsx
 import { Tabs } from 'expo-router';
 import React from 'react';
 import { colors } from '../../styles/globalStyles';
@@ -21,11 +21,11 @@ export default function TabLayout() {
         tabBarLabelStyle: {
           fontSize: 12,
           fontWeight: '600',
+          fontFamily: 'SubTitleFont', // ⭐ 추가 (중요)
         },
         headerShown: false,
       }}
     >
-      {/* 순서를 home - 캘린더 - 마이페이지로 설정 */}
       <Tabs.Screen
         name="home"
         options={{

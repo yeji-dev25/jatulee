@@ -1,6 +1,6 @@
 //index.tsx
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Alert , Image , StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router'; // expo-router를 사용
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { globalStyles } from '../styles/globalStyles';
@@ -53,7 +53,11 @@ const handleLogin = async () => {
   return (
     <View style={globalStyles.screen}>
       <View style={globalStyles.loginContainer}>
-        <Text style={globalStyles.title}>자투리 📝</Text>
+       <Image
+  source={require('../assets/images/image.png')}
+  style={styles.logo}
+  resizeMode="contain"
+/>
 
         <View style={globalStyles.inputContainer}>
           <Text style={globalStyles.inputLabel}>이메일</Text>
@@ -123,3 +127,12 @@ const handleLogin = async () => {
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  logo: {
+    width: 140,        // ← 크기 조절 가능
+    height: 140,
+    marginBottom: 24,
+    alignSelf: 'center',
+  },
+});

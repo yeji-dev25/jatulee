@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
-import { globalStyles } from '../styles/globalStyles';
+import { globalStyles , colors } from '../styles/globalStyles';
 import { sendResetEmail, verifyResetCode, resetPassword } from '../api/services';
 
 export default function PasswordResetScreen() {
@@ -77,7 +77,17 @@ export default function PasswordResetScreen() {
   return (
     <View style={globalStyles.screen}>
       <View style={globalStyles.loginContainer}>
-        <Text style={globalStyles.title}>비밀번호 재설정</Text>
+        <Text
+                  style={{
+                    fontFamily: 'SubTitleFont',
+                    fontSize: 24,
+                    color: colors.dark,
+                    marginBottom: 10
+                  ,
+                  }}
+                >
+                  비밀번호 재설정
+                </Text>
 
         {!sent && (
           <>

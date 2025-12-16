@@ -335,7 +335,6 @@ export interface MyBookSession {
   emotion: string;
   genre: string;
   status: string;           // 진행중/완료 등
-  emotionCount?: number;
   createdAt: string;
   recommendTitle: string;
 }

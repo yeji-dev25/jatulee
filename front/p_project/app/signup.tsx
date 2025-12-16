@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Alert } from 'react-native';
 import { useRouter } from 'expo-router'; // expo-router 사용
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { globalStyles } from '../styles/globalStyles';
+import { globalStyles, colors } from '../styles/globalStyles';
 import { registerUser } from '../api/services';
 
 export default function SignupScreen() {
@@ -92,7 +92,16 @@ export default function SignupScreen() {
   return (
     <View style={globalStyles.screen}>
       <View style={globalStyles.loginContainer}>
-        <Text style={globalStyles.title}>회원가입</Text>
+        <Text
+          style={{
+            fontFamily: 'SubTitleFont',
+            fontSize: 24,
+            color: colors.dark,
+            marginBottom: 5,
+          }}
+        >
+          회원가입
+        </Text>
 
         {/* 이메일 */}
         <View style={globalStyles.inputContainer}>

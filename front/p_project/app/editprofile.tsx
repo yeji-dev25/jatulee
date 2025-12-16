@@ -12,8 +12,6 @@ import {
 import { useRouter } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as ImagePicker from "expo-image-picker";
-import { uploadApi } from "../api/upladApi";
-
 import {
   updateUserProfile,
   getMyPage,
@@ -36,19 +34,14 @@ export default function ProfileEditScreen() {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [gender, setGender] = useState("");
-
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
-  
 
   useEffect(() => {
     loadUserData();
   }, []);
 
-  // =========================
-  // 🔹 GET /api/mypage
-  // =========================
   const loadUserData = async () => {
     try {
       const data = await getMyPage();
@@ -68,15 +61,11 @@ export default function ProfileEditScreen() {
       setProfileImage(userData.profileImage ?? null);
 
       await AsyncStorage.setItem("user", JSON.stringify(userData));
-    } catch (error) {
-      console.error("사용자 데이터 불러오기 실패:", error);
+    } catch {
       Alert.alert("오류", "프로필 정보를 불러올 수 없습니다.");
     }
   };
 
-  // =========================
-  // 🔹 프로필 이미지 선택
-  // =========================
   const pickProfileImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
@@ -86,81 +75,38 @@ export default function ProfileEditScreen() {
     });
 
     if (result.canceled) return;
-
-    const asset = result.assets[0];
-    await uploadProfileImage(asset);
+    await uploadProfileImage(result.assets[0]);
   };
 
-  // =========================
-  // 🔹 POST /api/mypage/profile
-  // =========================
-  const uploadProfileImage = async (
-    asset: ImagePicker.ImagePickerAsset
-  ) => {
+  const uploadProfileImage = async (asset: ImagePicker.ImagePickerAsset) => {
     try {
       setUploadingImage(true);
-
       const res = await updateProfileImage({
         uri: asset.uri,
         name: "profile.jpg",
         type: "image/jpeg",
       });
-
       setProfileImage(res.profileURL);
-
-      if (user) {
-        const updatedUser = {
-          ...user,
-          profileImage: res.profileURL,
-        };
-        setUser(updatedUser);
-        await AsyncStorage.setItem("user", JSON.stringify(updatedUser));
-      }
-    } catch (error) {
-      console.error("프로필 이미지 업로드 실패:", error);
-      Alert.alert("오류", "프로필 이미지 업로드에 실패했습니다.");
+    } catch {
+      Alert.alert("오류", "프로필 이미지 업로드 실패");
     } finally {
       setUploadingImage(false);
     }
   };
 
-  // =========================
-  // 🔹 POST /api/mypage/update
-  // =========================
   const handleSave = async () => {
     if (!username.trim() || !email.trim()) {
-      Alert.alert("알림", "닉네임과 이메일은 반드시 필요합니다.");
-      return;
-    }
-
-    if (!user?.id) {
-      Alert.alert("오류", "사용자 정보를 찾을 수 없습니다.");
+      Alert.alert("알림", "닉네임과 이메일은 필수입니다.");
       return;
     }
 
     setLoading(true);
-
     try {
-      const updatedUser = await updateUserProfile(
-        user.id,
-        email,
-        username,
-        gender
-      );
-
-      await AsyncStorage.setItem("user", JSON.stringify(updatedUser));
-      setUser(updatedUser);
-
+      await updateUserProfile(user!.id, email, username, gender);
       Alert.alert("성공", "프로필이 업데이트되었습니다.");
       router.back();
-    } catch (error: any) {
-      console.error("프로필 업데이트 실패:", error);
-
-      if (error?.response?.status === 409) {
-        Alert.alert("오류", "이미 존재하는 이메일 또는 닉네임입니다.");
-      } else {
-        Alert.alert("오류", "프로필 업데이트 중 문제가 발생했습니다.");
-      }
+    } catch {
+      Alert.alert("오류", "프로필 업데이트 실패");
     } finally {
       setLoading(false);
     }
@@ -168,8 +114,18 @@ export default function ProfileEditScreen() {
 
   return (
     <View style={globalStyles.screen}>
+      {/* 🔥 헤더 (대제목은 inline) */}
       <View style={globalStyles.header}>
-        <Text style={globalStyles.title}>프로필 편집</Text>
+        <Text
+  style={{
+    fontFamily: 'SubTitleFont',
+    fontSize: 24,
+    color: colors.dark,
+    marginBottom: 5,
+  }}
+>
+  프로필 편집
+</Text>
       </View>
 
       <View style={styles.card}>
@@ -181,18 +137,16 @@ export default function ProfileEditScreen() {
                 profileImage
                   ? { uri: profileImage }
                   : require("../assets/images/icon.png")
-
-
               }
               style={styles.profileImage}
             />
-
             {uploadingImage && (
               <View style={styles.imageOverlay}>
                 <ActivityIndicator color={colors.white} />
               </View>
             )}
           </TouchableOpacity>
+
           <Text style={styles.changeText}>프로필 사진 변경</Text>
         </View>
 
@@ -233,6 +187,14 @@ export default function ProfileEditScreen() {
 }
 
 const styles = StyleSheet.create({
+  pageTitle: {
+    fontFamily: "SubTitleFont",
+    fontSize: 24,
+    fontWeight: "700",
+    color: colors.dark,
+    marginBottom: 5,
+  },
+
   card: {
     backgroundColor: colors.white,
     padding: 25,
@@ -241,6 +203,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 20,
     elevation: 6,
   },
+
   profileImageWrapper: {
     alignItems: "center",
     marginBottom: 25,
@@ -253,22 +216,21 @@ const styles = StyleSheet.create({
   },
   imageOverlay: {
     position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
+    inset: 0,
     borderRadius: 55,
     backgroundColor: "rgba(0,0,0,0.4)",
     justifyContent: "center",
     alignItems: "center",
   },
   changeText: {
+    fontFamily: "SubTitleFont",
     marginTop: 10,
     fontSize: 14,
     color: colors.primary,
-    fontWeight: "500",
   },
+
   textInput: {
+    fontFamily: "DefaultFont",
     backgroundColor: colors.light,
     borderRadius: 8,
     paddingVertical: 14,
@@ -278,6 +240,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.lightGray,
   },
+
   button: {
     backgroundColor: colors.primary,
     paddingVertical: 16,
@@ -285,8 +248,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   buttonText: {
+    fontFamily: "SubTitleFont",
     fontSize: 18,
     color: colors.white,
-    fontWeight: "600",
   },
 });

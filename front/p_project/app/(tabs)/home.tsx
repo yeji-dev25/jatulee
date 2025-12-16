@@ -39,7 +39,6 @@ export default function HomeScreen() {
     loadData();
   }, []);
 
-  // 🔒 상세보기 비활성화 안내
   const showDetailDisabledAlert = () => {
     Alert.alert(
       "상세 보기 준비 중",
@@ -56,7 +55,6 @@ export default function HomeScreen() {
       }
 
       const data = await getHomeData();
-      console.log("📥 [HOME] getHomeData raw response:", data);
 
       const userData = {
         id: data.userId,
@@ -68,35 +66,32 @@ export default function HomeScreen() {
       await AsyncStorage.setItem("user", JSON.stringify(userData));
 
       const rawDiaries = data.writingSessionDTOS || [];
-      console.log("📥 [HOME] rawDiaries:", rawDiaries);
 
-      const mappedDiaries: Diary[] = rawDiaries.map(
-        (item: any, index: number) => {
-          const mapped = {
-            id: item.id ?? item.writingSessionId, // 현재 undefined여도 OK
-            title: item.title ?? null,
-            content: item.content ?? null,
-            emotion: item.emotion ?? null,
-            date: item.createdAt ?? "",
-            dateString: (item.createdAt ?? "").slice(0, 10),
-            type: item.type ?? "diary",
-          };
-
-          console.log(`🧾 [HOME] mappedDiaries[${index}]`, mapped);
-          return mapped;
-        }
-      );
+      const mappedDiaries: Diary[] = rawDiaries.map((item: any) => ({
+        id: item.id ?? item.writingSessionId,
+        title: item.title ?? null,
+        content: item.content ?? null,
+        emotion: item.emotion ?? null,
+        date: item.createdAt ?? "",
+        dateString: (item.createdAt ?? "").slice(0, 10),
+        type: item.type ?? "diary",
+      }));
 
       setDiaries(mappedDiaries);
     } catch (err) {
-      console.error("❌ 홈 데이터 로드 실패:", err);
       Alert.alert("오류", "데이터를 불러오는 중 문제가 발생했습니다.");
     } finally {
       setLoading(false);
     }
   };
 
-  if (loading) return <Text>로딩 중...</Text>;
+  if (loading) {
+    return (
+      <View style={globalStyles.center}>
+        <Text style={globalStyles.text}>로딩 중...</Text>
+      </View>
+    );
+  }
 
   const today = new Date().toISOString().slice(0, 10);
   const todayDiary = diaries.find((d) => d.dateString === today);
@@ -107,21 +102,18 @@ export default function HomeScreen() {
     (d) => new Date(d.dateString) >= weekAgo
   ).length;
 
-  const getDiaryLabel = (index: number) => `일기 ${index + 1}번`;
-  const getBookReviewLabel = (index: number) => `독후감 ${index + 1}번`;
-
   return (
     <ScrollView style={globalStyles.screen}>
       {/* 헤더 */}
       <View style={globalStyles.header}>
-        <Text style={globalStyles.title}>
+        <Text style={styles.greeting}>
           안녕하세요, {user?.username}님!
         </Text>
       </View>
 
       {/* 오늘의 기록 */}
       <View style={styles.todaySection}>
-        <Text style={globalStyles.sectionTitle}>오늘의 기록</Text>
+        <Text style={styles.sectionTitle}>오늘의 기록</Text>
 
         {todayDiary ? (
           <TouchableOpacity
@@ -140,15 +132,20 @@ export default function HomeScreen() {
             style={styles.todayEmptyCard}
             onPress={() => router.push("/diary/write")}
           >
-            <Text style={styles.todayEmptyText}>오늘의 일기가 없습니다</Text>
-            <Text style={styles.todayEmptySubtext}>탭해서 작성하기</Text>
+            <Text style={styles.todayEmptyText}>
+              오늘의 일기가 없습니다
+            </Text>
+            <Text style={styles.todayEmptySubtext}>
+              탭해서 작성하기
+            </Text>
           </TouchableOpacity>
         )}
       </View>
 
       {/* 이번 주 활동 */}
       <View style={globalStyles.card}>
-        <Text style={styles.statsTitle}>이번 주 활동</Text>
+        <Text style={styles.sectionTitle}>이번 주 활동</Text>
+
         <View style={styles.statsRow}>
           <View style={styles.statItem}>
             <Text style={styles.statNumber}>{thisWeekCount}</Text>
@@ -164,45 +161,38 @@ export default function HomeScreen() {
 
       {/* 최근 기록 */}
       <View style={styles.recentSection}>
-        <Text style={globalStyles.sectionTitle}>최근 기록</Text>
+        <Text style={styles.sectionTitle}>최근 기록</Text>
 
         {recentDiaries.length === 0 ? (
           <Text style={globalStyles.emptyText}>
             아직 작성된 기록이 없습니다.
           </Text>
         ) : (
-          recentDiaries.map((diary, index) => {
-            const isDiary = diary.type === "diary";
-
-            return (
-              <TouchableOpacity
-                key={`recent-${index}`}
-                style={globalStyles.listItem}
-                onPress={showDetailDisabledAlert}
-                activeOpacity={0.7}
-              >
-                <View style={globalStyles.listItemHeader}>
-                  <Text style={globalStyles.listItemTitle}>
-                    {diary.title ||
-                      (isDiary
-                        ? getDiaryLabel(index)
-                        : getBookReviewLabel(index))}
-                  </Text>
-
-                  <Text style={styles.diaryType}>
-                    {isDiary ? "일기" : "독후감"}
-                  </Text>
-                </View>
-
-                <Text style={globalStyles.listItemSubtitle}>
-                  {diary.dateString}
+          recentDiaries.map((diary, index) => (
+            <TouchableOpacity
+              key={`recent-${index}`}
+              style={globalStyles.listItem}
+              onPress={showDetailDisabledAlert}
+            >
+              <View style={globalStyles.listItemHeader}>
+                <Text style={styles.listTitle}>
+                  {diary.title ?? `기록 ${index + 1}`}
                 </Text>
-                <Text style={styles.diaryEmotion}>
-                  감정: {diary.emotion ?? "없음"}
+
+                <Text style={styles.diaryType}>
+                  {diary.type === "diary" ? "일기" : "독후감"}
                 </Text>
-              </TouchableOpacity>
-            );
-          })
+              </View>
+
+              <Text style={globalStyles.listItemSubtitle}>
+                {diary.dateString}
+              </Text>
+
+              <Text style={styles.diaryEmotion}>
+                감정: {diary.emotion ?? "없음"}
+              </Text>
+            </TouchableOpacity>
+          ))
         )}
       </View>
     </ScrollView>
@@ -210,6 +200,19 @@ export default function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
+  greeting: {
+    fontFamily: "TitleFont",
+    fontSize: 24,
+    color: colors.dark,
+  },
+
+  sectionTitle: {
+    fontFamily: "TitleFont",
+    fontSize: 18,
+    marginBottom: 12,
+    color: colors.dark,
+  },
+
   todaySection: { marginBottom: 25 },
 
   todayCard: {
@@ -219,11 +222,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   todayCardTitle: {
-    color: colors.white,
+    fontFamily: "TitleFont",
     fontSize: 18,
-    fontWeight: "bold",
+    color: colors.white,
   },
   todayCardEmotion: {
+    fontFamily: "DefaultFont",
     color: colors.white,
     marginTop: 6,
   },
@@ -238,38 +242,42 @@ const styles = StyleSheet.create({
     borderStyle: "dashed",
   },
   todayEmptyText: {
+    fontFamily: "SubTitleFont",
     color: colors.gray,
     fontSize: 16,
-    fontWeight: "600",
   },
   todayEmptySubtext: {
+    fontFamily: "DefaultFont",
     color: colors.gray,
     fontSize: 12,
   },
 
-  statsTitle: {
-    fontSize: 16,
-    fontWeight: "bold",
-    marginBottom: 15,
-  },
   statsRow: {
     flexDirection: "row",
     justifyContent: "space-around",
   },
   statItem: { alignItems: "center" },
   statNumber: {
+    fontFamily: "TitleFont",
     fontSize: 24,
-    fontWeight: "bold",
     color: colors.primary,
   },
   statLabel: {
+    fontFamily: "DefaultFont",
     fontSize: 12,
     color: colors.gray,
   },
 
   recentSection: { marginBottom: 25 },
 
+  listTitle: {
+    fontFamily: "SubTitleFont",
+    fontSize: 16,
+    color: colors.dark,
+  },
+
   diaryType: {
+    fontFamily: "DefaultFont",
     fontSize: 12,
     color: colors.primary,
     backgroundColor: "#E3F2FD",
@@ -279,6 +287,7 @@ const styles = StyleSheet.create({
   },
 
   diaryEmotion: {
+    fontFamily: "DefaultFont",
     fontSize: 14,
     color: colors.primary,
   },

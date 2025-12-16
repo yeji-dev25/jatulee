@@ -13,9 +13,6 @@ import { useRouter, useLocalSearchParams } from "expo-router";
 import { globalStyles, colors } from "../../styles/globalStyles";
 import { getBookReportList } from "../../api/services";
 
-// ==========================
-// 📌 Diary 타입 정의
-// ==========================
 interface DiaryItem {
   id: number;
   title: string;
@@ -35,9 +32,6 @@ export default function DiaryDetailScreen() {
   const [diary, setDiary] = useState<DiaryItem | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // ================================
-  // 🔥 params 안전하게 변환
-  // ================================
   const normalize = (v: string | string[] | undefined): string => {
     if (Array.isArray(v)) return v[0];
     return v ?? "";
@@ -47,20 +41,15 @@ export default function DiaryDetailScreen() {
   const typeParam = normalize(params.type);
   const itemParam = normalize(params.item);
 
-  // ================================
-  // 📌 상세 로딩
-  // ================================
   useEffect(() => {
     const loadDetail = async () => {
       try {
-        // 🔥 case 1: 리스트에서 item 전체를 넘겨준 경우
         if (itemParam) {
           const parsed = JSON.parse(itemParam);
           setDiary(parsed);
           return;
         }
 
-        // 🔥 case 2: 독후감 상세 → API에서 조회
         if (idParam && typeParam === "book") {
           const list = await getBookReportList();
           const found = list.find((b: any) => b.id === Number(idParam));
@@ -87,9 +76,6 @@ export default function DiaryDetailScreen() {
     loadDetail();
   }, []);
 
-  // ================================
-  // 📌 로딩 화면 (로딩은 질문 화면에서만 보이게)
-  // ================================
   if (loading) {
     return (
       <View style={globalStyles.center}>
@@ -99,26 +85,34 @@ export default function DiaryDetailScreen() {
     );
   }
 
-  // ================================
-  // 📌 잘못된 접근
-  // ================================
   if (!diary) {
     return (
       <View style={globalStyles.screen}>
-        <Text style={globalStyles.emptyText}>일기/독후감을 찾을 수 없습니다.</Text>
+        <Text style={globalStyles.emptyText}>
+          일기/독후감을 찾을 수 없습니다.
+        </Text>
       </View>
     );
   }
 
-  // ================================
-  // 📌 상세 화면
-  // ================================
   return (
     <View style={globalStyles.screen}>
       {/* 헤더 */}
       <View style={globalStyles.header}>
-        <Text style={globalStyles.title}>{diary.title}</Text>
-        <Text style={globalStyles.subtitle}>
+        <Text
+          style={[
+            globalStyles.title,
+            { fontFamily: "SubTitleFont" }, // 🔥
+          ]}
+        >
+          {diary.title}
+        </Text>
+        <Text
+          style={[
+            globalStyles.subtitle,
+            { fontFamily: "DefaultFont" }, // 🔥
+          ]}
+        >
           {diary.createdAt ?? diary.date ?? ""}
         </Text>
       </View>
@@ -145,7 +139,9 @@ export default function DiaryDetailScreen() {
         {diary.type === "book" && diary.genre && (
           <View style={styles.bookMeta}>
             <View style={styles.genreBadge}>
-              <Text style={styles.genreText}>장르: {diary.genre}</Text>
+              <Text style={styles.genreText}>
+                장르: {diary.genre}
+              </Text>
             </View>
           </View>
         )}
@@ -162,16 +158,20 @@ export default function DiaryDetailScreen() {
           style={[globalStyles.button, globalStyles.secondaryButton]}
           onPress={() => router.back()}
         >
-          <Text style={globalStyles.secondaryButtonText}>뒤로</Text>
+          <Text
+            style={[
+              globalStyles.secondaryButtonText,
+              { fontFamily: "DefaultFont" }, // 🔥
+            ]}
+          >
+            뒤로
+          </Text>
         </TouchableOpacity>
       </View>
     </View>
   );
 }
 
-// ==========================
-// 📌 스타일 (TS 호환)
-// ==========================
 const styles = StyleSheet.create({
   metaContainer: {
     backgroundColor: colors.white,
@@ -191,8 +191,9 @@ const styles = StyleSheet.create({
   },
   typeText: {
     color: "#fff",
-    fontWeight: "600",
     fontSize: 12,
+    fontWeight: "600",
+    fontFamily: "SubTitleFont", // 🔥
   },
   emotionBadge: {
     alignSelf: "flex-start",
@@ -203,8 +204,9 @@ const styles = StyleSheet.create({
   },
   emotionText: {
     color: "#fff",
-    fontWeight: "600",
     fontSize: 14,
+    fontWeight: "600",
+    fontFamily: "SubTitleFont", // 🔥
   },
   bookMeta: {
     backgroundColor: colors.white,
@@ -220,8 +222,9 @@ const styles = StyleSheet.create({
   },
   genreText: {
     color: "#fff",
-    fontWeight: "600",
     fontSize: 12,
+    fontWeight: "600",
+    fontFamily: "SubTitleFont", // 🔥
   },
   contentContainer: {
     backgroundColor: colors.white,
@@ -232,6 +235,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     lineHeight: 24,
     color: colors.dark,
+    fontFamily: "DefaultFont", // 🔥
   },
   actionContainer: {
     paddingVertical: 15,
@@ -243,5 +247,6 @@ const styles = StyleSheet.create({
     marginTop: 10,
     color: colors.primary,
     fontSize: 16,
+    fontFamily: "DefaultFont", // 🔥
   },
 });
