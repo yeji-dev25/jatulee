@@ -70,10 +70,10 @@ public class UserEntity {
                 .build();
     }
 
-    public void updateProfile(String nickname, String email, String gender) {
+    public void updateProfile(String nickname, String email, LocalDate birthDate) {
         this.nickname = nickname;
         this.email = email;
-        this.gender = gender;
+        this.birthDate = birthDate;
     }
 
 }

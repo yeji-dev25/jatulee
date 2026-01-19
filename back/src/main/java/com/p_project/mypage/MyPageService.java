@@ -41,7 +41,7 @@ public class MyPageService {
                 .map(ProfileEntity::getImageUrl)
                 .orElse(null);
 
-        myPageDTO.updateProfile(user.getNickname(),user.getEmail(), profileUrl);
+        myPageDTO.updateProfile(user.getNickname(),user.getEmail(), profileUrl, user.getBirthDate());
         myPageDTO.setUserId(userId);
 
         return myPageDTO;
@@ -53,7 +53,7 @@ public class MyPageService {
         UserEntity user = userRepository.findById(myPageUpdateDTO.getUserId())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        user.updateProfile(myPageUpdateDTO.getNickName(), myPageUpdateDTO.getEmail(), myPageUpdateDTO.getGender());
+        user.updateProfile(myPageUpdateDTO.getNickName(), myPageUpdateDTO.getEmail(), myPageUpdateDTO.getBirthDate());
 
     }
 
